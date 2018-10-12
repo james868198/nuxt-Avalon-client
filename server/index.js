@@ -1,6 +1,11 @@
-const express = require('express')
-const consola = require('consola')
-const { Nuxt, Builder } = require('nuxt')
+// const express = require('express')
+// const consola = require('consola')
+// const { Nuxt, Builder } = require('nuxt')
+
+import express from 'express'
+import consola from 'consola'
+import { Nuxt, Builder } from 'nuxt'
+
 const app = express()
 const host = process.env.HOST || '127.0.0.1'
 const port = process.env.PORT || 3000
