@@ -4,6 +4,9 @@
 
 import express from 'express'
 import consola from 'consola'
+import socket from 'socket.io'
+import http from 'http'
+
 import { Nuxt, Builder } from 'nuxt'
 
 const app = express()
@@ -11,6 +14,8 @@ const host = process.env.HOST || '127.0.0.1'
 const port = process.env.PORT || 3000
 
 app.set('port', port)
+
+let server = http.createServer(app)
 
 // Import and Set Nuxt.js options
 let config = require('../nuxt.config.js')
@@ -30,10 +35,25 @@ async function start() {
   app.use(nuxt.render)
 
   // Listen the server
-  app.listen(port, host)
+  server.listen(port, host)
   consola.ready({
     message: `Server listening on http://${host}:${port}`,
     badge: true
+  })
+
+  let io = socket(server)
+  console.log('socket test')
+
+  io.on('connection', sk => {
+    let curRoomName = 'hall'
+    sk.userName = ''
+
+    console.log('socket start, id:%s', sk.id)
+    // socket.emit('chat', { name: 'bar' }); // 發送資料
+
+    sk.on('test', data => {
+      sk.emit('chat', data)
+    })
   })
 }
 start()
