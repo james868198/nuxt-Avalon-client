@@ -5,21 +5,24 @@
                 .container-left-inner
                     .line
                         .label
-                            | Player ID
+                            .label-inner
+                                | Player ID
                         .input
                             el-input(v-model="playerId")
                         .btn
                             el-button(type="info", @click="setPlayerName") enter
                     //- .line
                     //-     .label
-                    //-         | create room
+                    //-         .label-inner
+                    //-             | create room
                     //-     .input
                     //-         el-input(v-model="roomName")
                     //-     .btn
                     //-         el-button(type="info", @click="createGame") enter
                     //- .line
                     //-     .label
-                    //-         | join room
+                    //-         .label-inner
+                    //-             | join room
                     //-     .input
                     //-         el-input(v-model="roomName")
                     //-     .btn
@@ -129,9 +132,10 @@ export default {
 <style lang="scss">
 .main {
     position: relative;
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
     overflow: hidden;
+    background-color: white;
     .main-container {
         position: relative;
         height: 100%;
@@ -140,31 +144,41 @@ export default {
         flex-direction: row;
         // overflow: hidden;
         .container-left {
-            background-color: white;
             position: relative;
             display: inline-block;
             height: 100%;
-            width: 50%;
+            width: 70%;
+            text-align: center;
             .container-left-inner {
                 position: relative;
                 height: 100%;
-                width: 100%;
-                padding: 2em;
+                width: 80%;
+                margin: 0 auto;
+                text-align: center;
                 .line {
                     position: relative;
-                    padding: 1em;
                     width: 100%;
                     display: flex;
                     flex-direction: row;
+                    padding-top: 2em;
+                    font-size: 1.5em;
                     .label {
                         display: inline-block;
                         position: relative;
                         width: 20%;
+                        .label-inner {
+                            position: absolute;
+                            width: 100%;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            text-align: center;
+                        }
                     }
                     .input {
                         display: inline-block;
                         position: relative;
                         width: 40%;
+                        text-align: center;
                     }
                     .btn {
                         display: inline-block;
@@ -176,11 +190,10 @@ export default {
             }
         }
         .container-right {
-            background-color: gray;
             position: relative;
             display: inline-block;
             height: 100%;
-            width: 50%;
+            width: 30%;
         }
     }
 }

@@ -1,0 +1,44 @@
+// base color defs
+$color-default: #14A5FF;
+$color-shade-amount: 15%;
+$color-trans-amount: 0.5;
+
+// color variable map
+$colors: (
+	black: #000000,
+	white: #FFFFFF,
+	red: #E23E57,
+	orange: #F7B32D,
+	yellow: #F7C873,
+	green: #A7D46F,
+	grey: #464646,
+	blue: #39B3FE,
+	lighten-blue: #A1D5F4,
+	dark-blue: #111D2D,
+	gray-1: #404040,
+	gray-2: #6D6D6D,
+	gray-3: #9B9B9B,
+	gray-4: #C8C8C8,
+	gray-5: #F5F5F5,
+	mask-1: rgba(0, 0, 0, 0.6),
+	mask-2: rgba(64, 64, 64, 0.8),
+	facebook-color: #1380c3,
+	google-color: #ee5252,
+	twitter-color: #00aced,
+	linkedin-color: #0077B5,
+	blogger-color: #f57d00,
+	default: (
+		base: $color-default,
+		light: lighten($color-default, $color-shade-amount),
+		dark: darken($color-default, $color-shade-amount),
+		trans: transparentize($color-default, $color-trans-amount)
+	)
+);
+
+@function color($color-name, $color-variant:null) {
+	@if ($color-variant != null) {
+		@return map-get(map-get($colors, $color-name), $color-variant);
+	} @else {
+		@return map-get($colors, $color-name);
+	}
+}

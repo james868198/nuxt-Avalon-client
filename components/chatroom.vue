@@ -2,16 +2,19 @@
     .chatroom
         .chatroom-container
             .container-top
-                ul.chatroom-message
-                    li(v-for="chat in chatting")
-                        | {{chat.userName}}:
-                        | {{chat.message}}
-            .container-bottom(@keyup.enter="SendMessage")
-                el-row(v-if="name")
-                    el-col.input(:span="20")
-                        el-input(v-model="message")
-                    el-col.btn(:span="4")
-                        el-button(type="info", @click="SendMessage") enter
+                #chatting.chatroom-message
+                    ul.chatroom-message-inner
+                        li(v-for="chat in chatting")
+                            | {{chat.userName}}:
+                            | {{chat.message}}
+            .container-bottom(@keyup.enter="sendMessage")
+                .dialog(v-if="name")
+                    .input
+                        .vertical-center
+                            el-input(v-model="message")
+                    .btn
+                        .vertical-center
+                            el-button(type="info", @click="sendMessage") enter
 
 </template>
 
@@ -36,14 +39,23 @@ export default {
             message: null
         }
     },
+    watch: {
+        chatting(newVal, oldVal) {
+            this.toBottom()
+        }
+    },
     methods: {
-        SendMessage() {
+        sendMessage() {
             const data = {
                 userName: this.name,
                 message: this.message
             }
             this.$emit('chat', data)
             this.message = null
+        },
+        toBottom() {
+            const element = this.$el.querySelector('#chatting')
+            element.scrollTop = element.scrollHeight
         }
     }
 }
@@ -51,10 +63,10 @@ export default {
 
 <style lang="scss">
 .chatroom {
+    background-color: gray;
     position: relative;
     height: 100%;
     width: 100%;
-    display: block;
     text-align: left;
     .chatroom-container {
         position: relative;
@@ -65,24 +77,48 @@ export default {
         .container-top {
             display: inline-block;
             position: relative;
-            height: 90%;
+            height: 85%;
             width: 100%;
+            padding-top: 1em;
             .chatroom-message {
-                list-style-type: none;
-                color: white;
+                position: relative;
+                height: 100%;
+                width: 100%;
+                overflow: scroll;
+                .chatroom-message-inner {
+                    list-style-type: none;
+                    color: white;
+                    font-size: 1.5em;
+                }
             }
         }
         .container-bottom {
             display: inline-block;
             position: relative;
-            height: 10%;
+            height: 15%;
             width: 100%;
-
-            .input {
-                padding: 0.1em;
-            }
-            .btn {
-                padding: 0.1em;
+            background-color: #f8f8ff;
+            padding-left: 1em;
+            padding-right: 1em;
+            .dialog {
+                position: relative;
+                height: 100%;
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                .input {
+                    position: relative;
+                    width: 50%;
+                    height: 100%;
+                    display: inline-block;
+                }
+                .btn {
+                    position: relative;
+                    width: 50%;
+                    height: 100%;
+                    display: inline-block;
+                    text-align: center;
+                }
             }
         }
     }
