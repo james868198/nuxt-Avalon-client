@@ -46,11 +46,7 @@ export default {
     },
     methods: {
         sendMessage() {
-            const data = {
-                userName: this.name,
-                message: this.message
-            }
-            this.$emit('chat', data)
+            this.$emit('message', this.message)
             this.message = null
         },
         toBottom() {

@@ -51,8 +51,9 @@ export default {
             playerName: null,
             socket: null,
             roomName: null,
+            gameTime: '00:00:00',
             cmdConfig: {
-                cr: this.createGame, //cr [roomName]
+                cr: this.createRoom, //cr [roomName]
                 jr: this.joinRoom, //cr [id]
                 t: this.test
             }
@@ -79,10 +80,16 @@ export default {
                     this.rooms = data.rooms
                 }
             })
+            this.socket.on('rooms', data => {
+                console.log('get rooms', data)
+                if (data) {
+                    this.rooms = data.rooms
+                }
+            })
         }
     },
     created() {
-        this.socket = io('http://127.0.0.1:3000')
+        this.socket = io('http://127.0.0.1:3000/game')
     },
     mounted() {},
     methods: {
@@ -123,28 +130,6 @@ export default {
                 userName: this.playerId
             }
             this.socket.emit('setUserName', data)
-        },
-        joinRoom() {
-            if (!this.socket) {
-                return null
-            }
-
-            const data = {
-                userName: this.userName
-            }
-            this.socket.emit('joinGame', data)
-            this.message = null
-        },
-        createGame() {
-            if (!this.socket) {
-                return null
-            }
-
-            const data = {
-                userName: this.userName
-            }
-            this.socket.emit('createGame', data)
-            this.message = null
         },
         setPlayerId() {
             console.log('test')
