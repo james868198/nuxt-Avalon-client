@@ -1,3 +1,6 @@
+import gameController from '../socketControllers/gameController'
+import chatController from '../socketControllers/baseController'
+
 let users = 0
 const curRoomName = 'hall'
 
@@ -10,9 +13,9 @@ export default (socket, db) => {
         userName: 'system',
         message: `Welcome to join us.`
     })
-    socket.on('setUserName', data => {
+    socket.on('setName', data => {
         socket.userName = data.userName
-        console.log('socket get user name')
+        console.log('socket get user name', data.userName)
         socket.emit('socketId', {
             id: socket.id
         })
@@ -30,13 +33,9 @@ export default (socket, db) => {
         socket.emit('message', data)
     })
 
-    socket.on('createGame', data => {
-        // const gameId = db.createGame(data.roomName, data.playersNumber)
-        const gameId = db.createGame('test', 10)
-        console.log(db)
-        // console.log('create room, id:', gameId)
-        // socket.emit('redirectToGame', gameId)
-    })
+    socket.on('createGame', data => gameController.createGame(socket, db, data))
+
+    socket.on('getGames', () => gameController.getGames(socket, db))
 
     socket.on('disconnect', () => {
         users--

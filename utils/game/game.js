@@ -2,56 +2,53 @@ import rules from '../../Avalon.json'
 import uuidv1 from 'uuid/v1'
 
 export default class game {
-    constructor(roomName, playerNumber) {
-        console.log(roomName, playerNumber)
+    constructor(roomName, numOfPlayers) {
+        console.log(roomName, numOfPlayers)
         this.name = roomName
-        this.gameId = uuidv1()
-        this.playerNumber = playerNumber
+        this.id = uuidv1()
+        this.numOfPlayers = numOfPlayers
         this.status = 'pending'
         this.players = []
-        this.turnNow = 0
+        this.round = 0
         this.fails = 0
         this.createdTime = Date.now()
         this.startTime = null
         this.mostRecentModifiedTime = this.createdTime
+        // private
+        this.charactors = []
     }
-    getName() {
-        return this.name
-    }
-    getGameId() {
-        return this.gameId
-    }
-    getStatus() {
-        return this.status
-    }
-    getPlayers() {
-        return this.players
-    }
-    getTurn() {
-        return this.turnNow
-    }
-    getFails() {
-        return this.fails
+    get publicData() {
+        return {
+            name: this.name,
+            id: this.id,
+            numOfPlayers: this.numOfPlayers,
+            status: this.status,
+            round: this.round,
+            name: this.name,
+            players: this.players
+        }
     }
 
     addPlayer(player) {
-        if (this.status == 'pending') {
+        console.log('addPlayer', player)
+        if (this.status != 'pending') {
             return
         }
+        console.log('addPlayer after 1 if')
         this.players.push(player)
-        if (length(this.players) == this.playerNumber) {
-            this.start()
-        }
+        // if (length(this.players) == this.numOfPlayers) {
+        //     this.start()
+        // }
+        console.log('push', this.players)
     }
 
     initial() {
-        charactors = rules.setting[this.playerNumber]
+        charactors = rules.setting[this.numOfPlayers]
         let i = 0
         this.players.forEach(player => {
             player.charactor = charactors[i]
             i++
         })
-        console.log()
     }
     start() {
         this.initial()
