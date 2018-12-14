@@ -39,7 +39,12 @@ export default class game {
         // if (length(this.players) == this.numOfPlayers) {
         //     this.start()
         // }
-        console.log('push', this.players)
+        return
+    }
+    removePlayer(player) {
+        console.log('removePlayer', player)
+        this.players = this.players.filter(item => item.id !== player.id) // es6 array remove寫法
+        return this.publicData
     }
 
     initial() {
@@ -49,14 +54,17 @@ export default class game {
             player.charactor = charactors[i]
             i++
         })
+        return
     }
     start() {
         this.initial()
         this.startTime = Date.now()
         this.status = 'night'
         // this.status = 'start'
+        return
     }
     over() {
         this.status = 'over'
+        return
     }
 }

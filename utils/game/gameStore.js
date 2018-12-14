@@ -16,7 +16,7 @@ export default class gameStore {
     }
 
     getGameById(id) {
-        console.log('getGameById', this.games, id)
+        console.log('getGameById', id)
         return this.games[id]
     }
     createGame(name, numOfPlayers) {

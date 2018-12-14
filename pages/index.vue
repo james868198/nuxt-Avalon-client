@@ -113,13 +113,12 @@ export default {
                     this.games = data
                 }
             })
-            this.socket.on('error', errorMsg => {
-                console.log('ERROR:', errorMsg.message)
-            })
-            this.socket.on('respone', respData => {
-                if (respData) {
-                    if (respData.inst == 'redirect') {
-                        window.location = `game/${respData.gameId}`
+            this.socket.on('response', resp => {
+                if (resp.status == 'error') {
+                    console.log('ERROR:', resp.error.description)
+                } else {
+                    if (resp.data) {
+                        window.location = `game/${resp.data.gameId}`
                     }
                 }
             })
@@ -275,7 +274,6 @@ export default {
                     }
                 }
                 .container-left-inner-mid {
-                    background-color: green;
                     position: relative;
                     width: 100%;
                     display: flex;

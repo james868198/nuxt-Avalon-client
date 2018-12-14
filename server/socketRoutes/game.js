@@ -24,9 +24,7 @@ export default (socket, db) => {
 
     // socket.on('leaveGame', gameController.leaveGame(socket, db, data))
 
-    socket.on('disconnect', () => {
-        console.log('socket disconnect')
-    })
+    socket.on('disconnect', () => gameController.leaveGame(socket, db))
 
     // socket.on('startGame', () => gameController.startGame(socket, db, data))
 }

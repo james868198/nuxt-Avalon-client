@@ -5,87 +5,156 @@
 const controller = {
     createGame: (socket, db, data) => {
         try {
-            console.log('controller create game', data)
+            console.log('controller create game')
             const gameId = db.createGame(data.roomName, data.numOfPlayers)
             if (!gameId) {
-                socket.emit('error', {
-                    code: 10001,
-                    message: 'create game fail'
-                })
+                const respData = {
+                    status: 'fail',
+                    error: {
+                        code: 10001,
+                        description: 'create game fail'
+                    }
+                }
+                socket.emit('response', respData)
+                return
             }
             const respData = {
-                inst: 'redirect',
-                gameId: gameId
+                status: 'success',
+                data: {
+                    gameId: gameId
+                }
             }
-            socket.emit('respone', respData)
+            socket.emit('response', respData)
         } catch (error) {
-            console.log('error ??', error)
-            socket.emit('error', {
-                code: 11111,
-                message: `unexpected error:${error}`
-            })
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
         }
     },
     joinGame: (socket, db, data) => {
-        console.log('controller join game', data)
+        console.log('controller join game')
         socket.userName = data.userName
         socket.room = data.gameId
         socket.join(data.gameId)
         try {
             const game = db.getGameById(data.gameId)
-            console.log('controller get game', game)
             if (!game) {
-                socket.emit('error', {
-                    code: 10000,
-                    message: 'found no game'
-                })
+                const respData = {
+                    status: 'fail',
+                    error: {
+                        code: 10000,
+                        description: 'found no game'
+                    }
+                }
+                socket.emit('response', respData)
                 return
             }
             socket.player = {
-                name: data.userName
+                name: data.userName,
+                id: socket.id,
+                status: 'on'
             }
             game.addPlayer(socket.player)
-            console.log('controller addPlayer')
             socket.to(socket.room).emit('message', {
                 userName: 'system',
                 message: `Welcome ${socket.userName}.`
             })
-            console.log('fail')
             socket.to(socket.room).emit('gameUpdate', game.publicData)
+            socket.emit('gameUpdate', game.publicData)
         } catch (error) {
-            socket.emit('error', {
-                code: 11111,
-                message: `unexpected error:${error}`
-            })
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
         }
     },
     startGame: (socket, db, data) => {
         // const gameId = db.createGame(data.roomName, data.numOfPlayers)
         // socket.emit('gameId', gameId)
     },
-    leaveGame: (socket, db, data) => {
-        // const gameId = db.createGame(data.roomName, data.numOfPlayers)
-        // socket.emit('gameId', gameId)
+    leaveGame: (socket, db) => {
+        console.log('controller leave game')
+        if (!socket.room) {
+            return
+        }
+
+        try {
+            const game = db.getGameById(socket.room)
+            if (!game) {
+                const respData = {
+                    status: 'fail',
+                    error: {
+                        code: 10000,
+                        description: 'found no game'
+                    }
+                }
+                socket.emit('response', respData)
+                return
+            }
+            console.log(' ??????')
+            if (game.status == 'pending') {
+                const data = game.removePlayer(socket.player)
+                console.log('pending leave', data)
+                socket.to(socket.room).emit('gameUpdate', data)
+            } else {
+                console.log('not pending leave')
+                socket.player.status = 'off'
+            }
+        } catch (error) {
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
+        }
     },
-    geteGames: (socket, db) => {
+    getGames: (socket, db) => {
+        console.log('controller get games')
         const games = db.getGames
         socket.emit('games', games)
     },
     getGameById: (socket, db, id) => {
+        console.log('controller get game by id')
         if (!socket || !db || !id) {
-            socket.emit('error', {
-                code: 10000,
-                message: 'miss required data'
-            })
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11110,
+                    description: `input not qualified`
+                }
+            }
+            socket.emit('response', respData)
+            return
         }
         try {
             const game = db.getGameById(id)
             socket.to(socket.room).emit('gameUpdate', game.publicData)
+            socket.emit('gameUpdate', game.publicData)
         } catch (error) {
-            socket.emit('error', {
-                code: 11111,
-                message: `unexpected error:${error}`
-            })
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
         }
     }
 }

@@ -1,6 +1,6 @@
 <template lang="pug">
-    .main
-        .main-container
+    .game
+        .game-container
             .container-left
                 .container-left-inner
                     .container-left-inner-top
@@ -59,14 +59,12 @@ export default {
                     this.chatting.push(data)
                 }
             })
-            this.socket.on('respone', resp => {
-                if (data) {
-                }
-            })
-            this.socket.on('error', errorMsg => {
-                console.log('ERROR:', errorMsg.message)
-                if (errorMsg.code == 10000) {
-                    window.location = '/'
+            this.socket.on('response', resp => {
+                console.log('socket resp:', resp)
+                if (resp.status == 'fail') {
+                    if (resp.error.code == 10000) {
+                        window.location = '/'
+                    }
                 }
             })
             this.socket.on('gameUpdate', game => {
@@ -139,13 +137,13 @@ export default {
 </script>
 
 <style lang="scss">
-.main {
+.game {
     position: relative;
     height: 100%;
     width: 100%;
     overflow: hidden;
     background-color: white;
-    .main-container {
+    .game-container {
         position: relative;
         height: 100%;
         width: 100%;
