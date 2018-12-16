@@ -22,6 +22,8 @@ export default (socket, db) => {
 
     socket.on('getGameById', id => gameController.getGameById(socket, db, id))
 
+    socket.on('getIdentity', () => gameController.getPlayerInfo(socket, db))
+
     // socket.on('action', gameController.action(socket, db, data))
     // socket.on('vote', gameController.vote(socket, db, data))
     // socket.on('assassinate', gameController.assassinate(socket, db, data))

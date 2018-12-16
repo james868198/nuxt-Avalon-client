@@ -59,6 +59,10 @@ export default {
             numOfPlayers: 5,
             numOfPlayersOptions: [
                 {
+                    value: 2,
+                    label: '2'
+                },
+                {
                     value: 5,
                     label: '5'
                 },

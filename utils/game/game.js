@@ -1,5 +1,6 @@
-import rules from '../../Avalon.json'
 import uuidv1 from 'uuid/v1'
+import avalonRule from '../../Avalon'
+import mathUtil from '../mathUtil'
 
 export default class game {
     constructor(roomName, numOfPlayers) {
@@ -15,8 +16,11 @@ export default class game {
         this.createdTime = Date.now()
         this.startTime = null
         this.mostRecentModifiedTime = this.createdTime
+        this.setting = avalonRule.setting[this.numOfPlayers]
         // private
-        this.charactors = []
+        this.playersInfo = []
+        this.missionNumberEachTrun = []
+        this.badTolerance = []
     }
     get publicData() {
         return {
@@ -33,18 +37,16 @@ export default class game {
     get full() {
         return this.numOfPlayers == this.nowPlayerAmount
     }
-
+    getPlayerInfoById(id) {
+        return this.playersInfo[id]
+    }
     addPlayer(player) {
         console.log('addPlayer', player)
         if (this.status != 'pending') {
             return
         }
-        console.log('addPlayer after 1 if')
         this.players.push(player)
         this.nowPlayerAmount++
-        // if (length(this.players) == this.numOfPlayers) {
-        //     this.start()
-        // }
         return
     }
     removePlayer(player) {
@@ -55,19 +57,60 @@ export default class game {
     }
 
     initial() {
-        charactors = rules.setting[this.numOfPlayers]
+        const gameSetting = avalonRule.setting[this.numOfPlayers]
+        const charactors = mathUtil.shuffle(gameSetting.charactors)
+        const view = {
+            Merlin: [],
+            Traitor: [],
+            Percival: []
+        }
+        // assign charactors
         let i = 0
         this.players.forEach(player => {
-            player.charactor = charactors[i]
+            // const charactor = avalonRule.charactors[charactors[i]]
+            if (charactors[i] == 'Merlin') {
+                view.Percival.push(i)
+            } else if (charactors[i] == 'Morgana') {
+                view.Merlin.push(i)
+                view.Traitor.push(i)
+                view.Percival.push(i)
+            } else if (charactors[i] == 'Mordred') {
+                view.Traitor.push(i)
+            } else if (charactors[i] == 'Oberon') {
+                view.Merlin.push(i)
+            } else if (charactors[i] == 'Assassin') {
+                view.Merlin.push(i)
+                view.Traitor.push(i)
+            } else if (charactors[i] == 'Traitor') {
+                view.Merlin.push(i)
+                view.Traitor.push(i)
+            }
+            const playerInfo = {
+                charactor: charactors[i],
+                camp: avalonRule.charactors[charactors[i]].camp
+            }
+            this.playersInfo.push(playerInfo)
             i++
+        })
+        // sfs
+        this.playersInfo.forEach(playerInfo => {
+            if (playerInfo.charactor == 'Merlin') {
+                playerInfo.saw = view.Merlin
+            } else if (playerInfo.charactor == 'Percival') {
+                playerInfo.saw = view.Percival
+            } else if (playerInfo.charactor !== 'Loyalty') {
+                if (playerInfo.charactor != 'Oberon') {
+                    playerInfo.saw = view.Traitor
+                }
+            }
         })
         return
     }
     start() {
         this.initial()
         this.startTime = Date.now()
-        this.status = 'night'
-        // this.status = 'start'
+        this.status = 'start'
+        this.round = 1
         return
     }
     over() {

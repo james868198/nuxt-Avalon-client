@@ -10,6 +10,9 @@
                         .name
                             | {{playerName}}
                     .container-left-inner-bottom
+                        .container-left-inner-bottom-inner(v-if="game")
+                            .player(v-for="player in game.players")
+                                | {{player}}:
             .container-right
                 Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
 
@@ -27,17 +30,24 @@ export default {
     },
     data() {
         return {
-            game: null,
-            gameId: null,
+            // base
             chatting: [],
-            playerName: null,
             socketId: null,
             socket: null,
-            gameTime: '00:00:00',
+            // game
+            game: null,
+            gameId: null,
+            playerName: null,
+            player: {
+                name: null,
+                id: null,
+                charactor: null,
+                camp: null,
+                saw: []
+            },
             cmdConfig: {
-                cr: this.createRoom, //cr [roomName]
-                jg: this.joinGame, //cr [id]
-                t: this.test
+                vote: this.vote, //cr [y or n]
+                active: this.vote //cr [s or f]
             }
         }
     },
@@ -59,25 +69,34 @@ export default {
                     this.chatting.push(data)
                 }
             })
-            this.socket.on('response', resp => {
-                console.log('socket resp:', resp)
-                if (resp.status == 'fail') {
+            this.socket.on('response', res => {
+                console.log('socket res:', res)
+                if (res.status == 'fail') {
                     console.log('socket fail:')
-                    if (resp.error.code == 10000) {
+                    if (res.error.code == 10000) {
                         console.log('socket code:')
                         window.location.href = '/'
                         // this.$router.push({ path: '/' })
                     }
-                }
-            })
-            this.socket.on('gameUpdate', game => {
-                if (game) {
-                    this.game = game
                 } else {
-                    // this.$router.push({ path: '/' })
-                    window.location = '/'
+                    if (res.data) {
+                        if (res.data.game) {
+                            this.game = res.data.game
+                        }
+                        if (res.data.player) {
+                            this.player = res.data.player
+                        }
+                    }
                 }
             })
+        },
+        game(newVal, oldVal) {
+            if (newVal) {
+                this.game = newVal
+                if (newVal.status !== 'pending') {
+                    this.getIdentity()
+                }
+            }
         }
     },
     created() {
@@ -135,6 +154,9 @@ export default {
         },
         getGameById(id) {
             SocketEmits.getGameById(this.socket, id)
+        },
+        getIdentity() {
+            SocketEmits.getIdentity(this.socket)
         }
     }
 }
@@ -168,7 +190,7 @@ export default {
                 // text-align: center;
                 .container-left-inner-top {
                     position: relative;
-                    height: 50%;
+                    height: 40%;
                     width: 100%;
                 }
                 .container-left-inner-mid {
@@ -178,7 +200,7 @@ export default {
                 }
                 .container-left-inner-bottom {
                     position: relative;
-                    height: 20%;
+                    height: 40%;
                     width: 100%;
                 }
             }

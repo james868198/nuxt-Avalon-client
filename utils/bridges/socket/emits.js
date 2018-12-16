@@ -16,6 +16,9 @@ const createGame = (socket, data) => {
 const getGameById = (socket, id) => {
     socket.emit('getGameById', id)
 }
+const getIdentity = socket => {
+    socket.emit('getIdentity')
+}
 export default {
     // all
     chat,
@@ -25,5 +28,6 @@ export default {
     getGames,
     createGame,
     // game
-    joinGame
+    joinGame,
+    getIdentity
 }

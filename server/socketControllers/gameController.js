@@ -70,7 +70,7 @@ const controller = {
             socket.join(data.gameId)
             socket.player = {
                 name: data.userName,
-                id: socket.id,
+                id: game.nowPlayerAmount,
                 status: 'on'
             }
             game.addPlayer(socket.player)
@@ -78,8 +78,19 @@ const controller = {
                 userName: 'system',
                 message: `Welcome ${socket.userName}.`
             })
-            socket.to(socket.room).emit('gameUpdate', game.publicData)
-            socket.emit('gameUpdate', game.publicData)
+            // check game full again
+            if (game.full) {
+                game.start()
+            }
+
+            const respData = {
+                status: 'success',
+                data: {
+                    game: game.publicData
+                }
+            }
+            socket.to(socket.room).emit('response', respData)
+            socket.emit('response', respData)
         } catch (error) {
             console.log('error:', error)
             const respData = {
@@ -116,8 +127,14 @@ const controller = {
                 return
             }
             if (game.status == 'pending') {
-                const data = game.removePlayer(socket.player)
-                socket.to(socket.room).emit('gameUpdate', data)
+                const publicData = game.removePlayer(socket.player)
+                const respData = {
+                    status: 'success',
+                    data: {
+                        game: publicData
+                    }
+                }
+                socket.to(socket.room).emit('response', respData)
             } else {
                 socket.player.status = 'off'
             }
@@ -140,7 +157,31 @@ const controller = {
     },
     getGameById: (socket, db, id) => {
         console.log('controller get game by id')
-        if (!socket || !db || !id) {
+        try {
+            const game = db.getGameById(id)
+            const respData = {
+                status: 'success',
+                data: {
+                    game: game.publicData
+                }
+            }
+            socket.emit('response', respData)
+            socket.to(socket.room).emit('response', respData)
+        } catch (error) {
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
+        }
+    },
+    getPlayerInfo: (socket, db) => {
+        console.log('controller get playerInfo')
+        if (!socket.player) {
             const respData = {
                 status: 'fail',
                 error: {
@@ -152,9 +193,15 @@ const controller = {
             return
         }
         try {
-            const game = db.getGameById(id)
-            socket.to(socket.room).emit('gameUpdate', game.publicData)
-            socket.emit('gameUpdate', game.publicData)
+            const game = db.getGameById(socket.room)
+            const playerInfo = game.getPlayerInfoById(socket.player.id)
+            const respData = {
+                status: 'success',
+                data: {
+                    player: playerInfo
+                }
+            }
+            socket.emit('response', respData)
         } catch (error) {
             console.log('error:', error)
             const respData = {
@@ -167,6 +214,17 @@ const controller = {
             socket.emit('response', respData)
         }
     }
+    // emit
+    // response: (socket, data) {
+    //     const respData = {
+    //         status: 'fail',
+    //         error: {
+    //             code: 11111,
+    //             description: `unexpected error:${error}`
+    //         }
+    //     }
+    //     socket.emit('response', respData)
+    // }
 }
 
 export default controller
