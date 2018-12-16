@@ -14,10 +14,9 @@ import GameStore from '../utils/game/gameStore'
 
 import config from '../nuxt.config.js'
 config.dev = !(process.env.NODE_ENV === 'production')
-
 const app = express()
-const host = process.env.HOST || '127.0.0.1'
-const port = process.env.PORT || 3000
+const host = config.server.HOST || '127.0.0.1'
+const port = config.server.PORT || 3000
 const database = new GameStore()
 
 app.set('port', port)

@@ -18,7 +18,7 @@
 <script>
 import Chatroom from '@/components/chatroom'
 import SocketEmits from '@/utils/bridges/socket/emits'
-import io from 'socket.io-client'
+import socketClient from '@/plugins/socket.io'
 
 export default {
     name: 'Game',
@@ -62,8 +62,11 @@ export default {
             this.socket.on('response', resp => {
                 console.log('socket resp:', resp)
                 if (resp.status == 'fail') {
+                    console.log('socket fail:')
                     if (resp.error.code == 10000) {
-                        window.location = '/'
+                        console.log('socket code:')
+                        window.location.href = '/'
+                        // this.$router.push({ path: '/' })
                     }
                 }
             })
@@ -78,7 +81,8 @@ export default {
         }
     },
     created() {
-        this.socket = io('http://127.0.0.1:3000/game')
+        const socketUrl = `${socketClient.url}/game`
+        this.socket = socketClient.io(socketUrl, socketClient.options)
     },
     mounted() {
         if (localStorage.playerName) {
@@ -166,13 +170,11 @@ export default {
                     position: relative;
                     height: 50%;
                     width: 100%;
-                    background: yellow;
                 }
                 .container-left-inner-mid {
                     position: relative;
                     height: 20%;
                     width: 100%;
-                    background: gray;
                 }
                 .container-left-inner-bottom {
                     position: relative;

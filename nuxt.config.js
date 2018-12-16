@@ -2,16 +2,14 @@ import pkg from './package'
 
 module.exports = {
     mode: 'universal',
-    // server: {
-    //     port: 8000, // default: 3000
-    //     host: '0.0.0.0' // default: localhost,
-    // },
+    server: {
+        port: 3000, // default: 3000
+        host: '0.0.0.0' // default: localhost,
+    },
     /*
     ** env setting variables
     */
-    env: {
-        baseUrl: process.env.BASE_URL || 'http://localhost:3000'
-    },
+    env: {},
     /*
     ** Headers of the page
     */

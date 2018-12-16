@@ -9,6 +9,7 @@ export default class game {
         this.numOfPlayers = numOfPlayers
         this.status = 'pending'
         this.players = []
+        this.nowPlayerAmount = 0
         this.round = 0
         this.fails = 0
         this.createdTime = Date.now()
@@ -22,11 +23,15 @@ export default class game {
             name: this.name,
             id: this.id,
             numOfPlayers: this.numOfPlayers,
+            nowPlayerAmount: this.nowPlayerAmount,
             status: this.status,
             round: this.round,
             name: this.name,
             players: this.players
         }
+    }
+    get full() {
+        return this.numOfPlayers == this.nowPlayerAmount
     }
 
     addPlayer(player) {
@@ -36,6 +41,7 @@ export default class game {
         }
         console.log('addPlayer after 1 if')
         this.players.push(player)
+        this.nowPlayerAmount++
         // if (length(this.players) == this.numOfPlayers) {
         //     this.start()
         // }
@@ -44,6 +50,7 @@ export default class game {
     removePlayer(player) {
         console.log('removePlayer', player)
         this.players = this.players.filter(item => item.id !== player.id) // es6 array remove寫法
+        this.nowPlayerAmount--
         return this.publicData
     }
 

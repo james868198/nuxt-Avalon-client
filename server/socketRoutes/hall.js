@@ -8,11 +8,15 @@ export default (socket, db) => {
     socket.userName = ''
     socket.join(curRoomName)
     console.log('socket start, id:%s', socket.id)
+    console.log('user:', users)
 
     socket.emit('message', {
         userName: 'system',
         message: `Welcome to join us.`
     })
+    // socket.on('connect', () => {
+    //     users--
+    // })
     socket.on('setName', data => {
         socket.userName = data.userName
         console.log('socket get user name', data.userName)

@@ -8,7 +8,7 @@
                             .label-inner
                                 | Player ID
                         .input
-                            el-input(v-model="playerName")
+                            el-input(v-model="playerId")
                         .btn
                             el-button(type="info", @click="setPlayerName") enter
                     //- .game(v-for="game in games")
@@ -40,7 +40,7 @@
 <script>
 import Chatroom from '@/components/chatroom'
 import SocketEmits from '@/utils/bridges/socket/emits'
-import io from 'socket.io-client'
+import socketClient from '@/plugins/socket.io'
 
 export default {
     name: 'Index',
@@ -52,6 +52,7 @@ export default {
             chatting: [],
             games: [],
             socketId: null,
+            playerId: null,
             playerName: null,
             socket: null,
             gameName: 'room',
@@ -91,7 +92,7 @@ export default {
     watch: {
         socket(newVal, oldVal) {
             if (!newVal) {
-                this.socket = io('http://127.0.0.1:3000')
+                // this.socket = socketClient.io(socketClient.url, socketClient.options)
                 return
             }
             this.socket.on('socketId', data => {
@@ -125,12 +126,13 @@ export default {
         }
     },
     created() {
-        this.socket = io('http://127.0.0.1:3000')
+        this.socket = socketClient.io(socketClient.url, socketClient.options)
     },
     mounted() {
         if (localStorage.playerName) {
             this.playerName = localStorage.playerName
-            this.setPlayerName()
+            this.playerId = localStorage.playerName
+            this.setName()
         }
     },
     methods: {
@@ -159,17 +161,19 @@ export default {
             SocketEmits.chat(this.socket, data)
         },
         setPlayerName() {
-            if (!this.socket) {
+            if (this.playerId == '' || !this.playerId) {
                 return
             }
-            if (this.playerName == '' || !this.playerName) {
+            this.playerName = this.playerId
+            localStorage.playerName = this.playerName
+            this.setName()
+        },
+        setName() {
+            if (!this.socket) {
                 return
             }
             const data = {
                 userName: this.playerName
-            }
-            if (!localStorage.playerName) {
-                localStorage.playerName = this.playerName
             }
             SocketEmits.setName(this.socket, data)
         },

@@ -39,11 +39,9 @@ const controller = {
     },
     joinGame: (socket, db, data) => {
         console.log('controller join game')
-        socket.userName = data.userName
-        socket.room = data.gameId
-        socket.join(data.gameId)
         try {
             const game = db.getGameById(data.gameId)
+            // check game existed
             if (!game) {
                 const respData = {
                     status: 'fail',
@@ -55,6 +53,21 @@ const controller = {
                 socket.emit('response', respData)
                 return
             }
+            // check game full
+            if (game.full) {
+                const respData = {
+                    status: 'fail',
+                    error: {
+                        code: 10000,
+                        description: 'game full'
+                    }
+                }
+                socket.emit('response', respData)
+                return
+            }
+            socket.userName = data.userName
+            socket.room = data.gameId
+            socket.join(data.gameId)
             socket.player = {
                 name: data.userName,
                 id: socket.id,
@@ -102,13 +115,10 @@ const controller = {
                 socket.emit('response', respData)
                 return
             }
-            console.log(' ??????')
             if (game.status == 'pending') {
                 const data = game.removePlayer(socket.player)
-                console.log('pending leave', data)
                 socket.to(socket.room).emit('gameUpdate', data)
             } else {
-                console.log('not pending leave')
                 socket.player.status = 'off'
             }
         } catch (error) {

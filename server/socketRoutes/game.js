@@ -22,7 +22,9 @@ export default (socket, db) => {
 
     socket.on('getGameById', id => gameController.getGameById(socket, db, id))
 
-    // socket.on('leaveGame', gameController.leaveGame(socket, db, data))
+    // socket.on('action', gameController.action(socket, db, data))
+    // socket.on('vote', gameController.vote(socket, db, data))
+    // socket.on('assassinate', gameController.assassinate(socket, db, data))
 
     socket.on('disconnect', () => gameController.leaveGame(socket, db))
 
