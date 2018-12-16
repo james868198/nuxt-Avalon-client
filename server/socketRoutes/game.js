@@ -24,8 +24,14 @@ export default (socket, db) => {
 
     socket.on('getIdentity', () => gameController.getPlayerInfo(socket, db))
 
-    // socket.on('action', gameController.action(socket, db, data))
-    // socket.on('vote', gameController.vote(socket, db, data))
+    socket.on('quest', data => gameController.quest(socket, db, data))
+
+    socket.on('unQuest', data => gameController.unQuest(socket, db, data))
+
+    socket.on('vote', data => gameController.vote(socket, db, data))
+
+    socket.on('action', data => gameController.action(socket, db, data))
+
     // socket.on('assassinate', gameController.assassinate(socket, db, data))
 
     socket.on('disconnect', () => gameController.leaveGame(socket, db))

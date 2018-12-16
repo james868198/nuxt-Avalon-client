@@ -1,5 +1,7 @@
 const rule = {
     name: 'Avalon',
+    turnInterval: 300,
+    assassinationInterval: 120,
     charactors: {
         Loyalty: {
             Name: 'Loyalty',
@@ -40,7 +42,7 @@ const rule = {
             camp: 'R'
         }
     },
-    setting: {
+    configuration: {
         // for test
         '2': {
             playersNumbers: 2,

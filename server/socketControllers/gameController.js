@@ -68,12 +68,12 @@ const controller = {
             socket.userName = data.userName
             socket.room = data.gameId
             socket.join(data.gameId)
-            socket.player = {
+            const playerData = {
                 name: data.userName,
                 id: game.nowPlayerAmount,
                 status: 'on'
             }
-            game.addPlayer(socket.player)
+            socket.player = game.addPlayer(playerData)
             socket.to(socket.room).emit('message', {
                 userName: 'system',
                 message: `Welcome ${socket.userName}.`
@@ -213,18 +213,86 @@ const controller = {
             }
             socket.emit('response', respData)
         }
+    },
+    // in game
+    quest: (socket, db, data) => {
+        try {
+            const game = db.getGameById(socket.room)
+            if (game.roundParams.leader != socket.player.id) {
+                return
+            }
+            game.quest(data.questId)
+            const respData = {
+                status: 'success',
+                data: game.publicData
+            }
+            socket.emit('response', respData)
+            socket.to(socket.room).emit('response', respData)
+        } catch (error) {
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
+        }
+    },
+    vote: (socket, db, data) => {
+        try {
+            const game = db.getGameById(socket.room)
+            game.vote(socket.player.id, data.vote)
+            const respData = {
+                status: 'success',
+                data: game.publicData
+            }
+            socket.emit('response', respData)
+            socket.to(socket.room).emit('response', respData)
+        } catch (error) {
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
+        }
+    },
+    action: (socket, db, data) => {
+        try {
+            const game = db.getGameById(socket.room)
+            let onMission = false
+            game.roundParams.playersOnMission.forEach(id => {
+                if (id === socket.player.id) {
+                    onMission = true
+                }
+            })
+            if (!onMission) {
+                return
+            }
+            game.action(data.action)
+            const respData = {
+                status: 'success',
+                data: game.publicData
+            }
+            socket.emit('response', respData)
+            socket.to(socket.room).emit('response', respData)
+        } catch (error) {
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
+        }
     }
-    // emit
-    // response: (socket, data) {
-    //     const respData = {
-    //         status: 'fail',
-    //         error: {
-    //             code: 11111,
-    //             description: `unexpected error:${error}`
-    //         }
-    //     }
-    //     socket.emit('response', respData)
-    // }
 }
 
 export default controller

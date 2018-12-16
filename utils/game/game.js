@@ -5,22 +5,39 @@ import mathUtil from '../mathUtil'
 export default class game {
     constructor(roomName, numOfPlayers) {
         console.log(roomName, numOfPlayers)
+        // basic
         this.name = roomName
         this.id = uuidv1()
+        // condiguration
+        this.configuration = avalonRule.configuration[this.numOfPlayers]
         this.numOfPlayers = numOfPlayers
+        // status
         this.status = 'pending'
-        this.players = []
         this.nowPlayerAmount = 0
-        this.round = 0
-        this.fails = 0
+        this.players = []
+        // round status
+        this.rounds = []
+        this.round = {
+            status: '', // assignment, voting,
+            id: 0,
+            leader: null,
+            agreeCount: 0,
+            voteHistory: [],
+            NumOnMission: 0,
+            playersOnMission: []
+        }
+        // mission
+        this.missionFails = 0
+        this.missions = []
+        // time
         this.createdTime = Date.now()
         this.startTime = null
+        this.turnInterval = avalonRule.turnInterval
+        this.assassinationInterval = avalonRule.assassinationInterval
         this.mostRecentModifiedTime = this.createdTime
-        this.setting = avalonRule.setting[this.numOfPlayers]
         // private
         this.playersInfo = []
-        this.missionNumberEachTrun = []
-        this.badTolerance = []
+        this.roundInfo = null
     }
     get publicData() {
         return {
@@ -31,7 +48,8 @@ export default class game {
             status: this.status,
             round: this.round,
             name: this.name,
-            players: this.players
+            players: this.players,
+            configuration: this.configuration
         }
     }
     get full() {
@@ -40,10 +58,17 @@ export default class game {
     getPlayerInfoById(id) {
         return this.playersInfo[id]
     }
-    addPlayer(player) {
+    addPlayer(data) {
         console.log('addPlayer', player)
         if (this.status != 'pending') {
             return
+        }
+        const player = {
+            name: data.name,
+            id: data.id,
+            status: data.status,
+            onMission: false,
+            voted: false
         }
         this.players.push(player)
         this.nowPlayerAmount++
@@ -57,8 +82,10 @@ export default class game {
     }
 
     initial() {
-        const gameSetting = avalonRule.setting[this.numOfPlayers]
-        const charactors = mathUtil.shuffle(gameSetting.charactors)
+        if (!this.configuration) {
+            return
+        }
+        const charactors = mathUtil.shuffle(this.configuration.charactors)
         const view = {
             Merlin: [],
             Traitor: [],
@@ -92,7 +119,7 @@ export default class game {
             this.playersInfo.push(playerInfo)
             i++
         })
-        // sfs
+        // saw others' identity
         this.playersInfo.forEach(playerInfo => {
             if (playerInfo.charactor == 'Merlin') {
                 playerInfo.saw = view.Merlin
@@ -106,11 +133,65 @@ export default class game {
         })
         return
     }
+    vote(id, voteResult) {
+        if (this.round.status != 'voting') {
+            return
+        }
+        if (voteResult == 'N') {
+            this.round.voteHistory[id] = 'N'
+            this.round.voteCount.agree--
+        }
+    }
+    quest(id) {
+        if (
+            this.round.NumOnMission >=
+            this.configuration.missionNumberEachTrun[this.round.id]
+        ) {
+            return false
+        }
+        this.players[id].onMission = true
+    }
+    unQuest(id) {
+        if (this.round.NumOnMission <= 0) {
+            return false
+        }
+        this.players[id].onMission = false
+    }
+    action(decision) {
+        if (decision == 'f' && this.missionFails <= this.numOfPlayers) {
+            this.missionFails++
+        }
+    }
+    resetRound() {
+        this.round.status = 'questing'
+        if (this.round.leader) {
+            this.round.leader = (this.round.leader + 1) % this.numOfPlayers
+        } else {
+            this.round.leader = Math.round(
+                Math.random() * (this.numOfPlayers - 1)
+            )
+            console.log('test???', this.round.leader)
+        }
+        this.round.agreeCount = this.numOfPlayers
+        this.round.playersOnMission = []
+        for (let i = 0; i < this.numOfPlayers; i++) {
+            this.round.voteHistory.push('Y')
+        }
+    }
+    // roundEnd() {
+
+    // }
+    // voteEnd() {
+
+    // }
+    // actionEnd() {
+
+    // }
     start() {
         this.initial()
+        this.resetRound()
         this.startTime = Date.now()
         this.status = 'start'
-        this.round = 1
         return
     }
     over() {
