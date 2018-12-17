@@ -1,6 +1,11 @@
 // 資料驗證
 // 邏輯處理
 // 資料回傳
+import avalonRule from '../../Avalon'
+const QUESI_SEC = avalonRule.turnInterval
+const VOTE_SEC = avalonRule.decisionInterval
+const ACTION_SEC = avalonRule.decisionInterval
+const ASSAINATION_SEC = avalonRule.assassinationInterval
 
 const controller = {
     createGame: (socket, db, data) => {
@@ -78,10 +83,6 @@ const controller = {
                 userName: 'system',
                 message: `Welcome ${socket.userName}.`
             })
-            // check game full again
-            if (game.full) {
-                game.start()
-            }
 
             const respData = {
                 status: 'success',
@@ -91,6 +92,11 @@ const controller = {
             }
             socket.to(socket.room).emit('response', respData)
             socket.emit('response', respData)
+            // check game full again
+            if (game.full) {
+                // console.log(this)
+                controller.startGame(socket, db)
+            }
         } catch (error) {
             console.log('error:', error)
             const respData = {
@@ -103,9 +109,87 @@ const controller = {
             socket.emit('response', respData)
         }
     },
-    startGame: (socket, db, data) => {
-        // const gameId = db.createGame(data.roomName, data.numOfPlayers)
-        // socket.emit('gameId', gameId)
+    startGame: (socket, db) => {
+        const game = db.getGameById(socket.room)
+        game.start()
+        let result = null
+        let time = 0
+        const roundTimer = setInterval(() => {
+            const respData = {
+                status: 'success',
+                data: {
+                    time: time,
+                    game: game.publicData
+                }
+            }
+            socket.emit('response', respData)
+            socket.to(socket.room).emit('response', respData)
+
+            result = game.missionResult
+            const roundStage = game.round.stage
+            const ready = game.roundReady
+            if (roundStage === 'questing') {
+                if (time >= QUESI_SEC || ready) {
+                    const respData = {
+                        status: 'success',
+                        data: {
+                            game: null
+                        }
+                    }
+                    if (game.questCheck()) {
+                        respData.data.message = 'go to voting stage'
+                    } else {
+                        respData.data.message = 'quest error'
+                    }
+                    respData.data.game = game.publicData
+                    socket.emit('response', respData)
+                    socket.to(socket.room).emit('response', respData)
+                    time = 0
+                }
+            } else if (roundStage === 'voting') {
+                if (time >= VOTE_SEC || ready) {
+                    const respData = {
+                        status: 'success',
+                        data: {
+                            game: null
+                        }
+                    }
+                    if (game.voteCheck()) {
+                        respData.data.message = 'go to action stage'
+                    } else {
+                        respData.data.message = 'vote error'
+                    }
+                    respData.data.game = game.publicData
+                    socket.emit('response', respData)
+                    socket.to(socket.room).emit('response', respData)
+                    time = 0
+                }
+            } else if (roundStage === 'action') {
+                if (time >= ACTION_SEC || ready) {
+                    const respData = {
+                        status: 'success',
+                        data: {
+                            game: null
+                        }
+                    }
+                    if (game.actionCheck()) {
+                        respData.data.message = 'go to action stage'
+                    } else {
+                        respData.data.message = 'action error'
+                    }
+                    respData.data.game = game.publicData
+                    socket.emit('response', respData)
+                    socket.to(socket.room).emit('response', respData)
+                    time = 0
+                }
+            } else {
+                this.round.time = 0
+                this.resetRound()
+                clearInterval(roundTimer)
+            }
+            time++
+        }, 1000)
+        console.log('run round timer')
     },
     leaveGame: (socket, db) => {
         console.log('controller leave game')
@@ -180,7 +264,7 @@ const controller = {
         }
     },
     getPlayerInfo: (socket, db) => {
-        console.log('controller get playerInfo')
+        console.log('controller get playerInfo', socket.player)
         if (!socket.player) {
             const respData = {
                 status: 'fail',
@@ -218,10 +302,35 @@ const controller = {
     quest: (socket, db, data) => {
         try {
             const game = db.getGameById(socket.room)
-            if (game.roundParams.leader != socket.player.id) {
+            if (game.round.leader !== socket.player.id) {
                 return
             }
-            game.quest(data.questId)
+            game.quest(data.playerId)
+            const respData = {
+                status: 'success',
+                data: game.publicData
+            }
+            socket.emit('response', respData)
+            socket.to(socket.room).emit('response', respData)
+        } catch (error) {
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
+        }
+    },
+    unQuest: (socket, db, data) => {
+        try {
+            const game = db.getGameById(socket.room)
+            if (game.round.leader !== socket.player.id) {
+                return
+            }
+            game.unQuest(data.playerId)
             const respData = {
                 status: 'success',
                 data: game.publicData
@@ -266,7 +375,7 @@ const controller = {
         try {
             const game = db.getGameById(socket.room)
             let onMission = false
-            game.roundParams.playersOnMission.forEach(id => {
+            game.round.playersOnMission.forEach(id => {
                 if (id === socket.player.id) {
                     onMission = true
                 }

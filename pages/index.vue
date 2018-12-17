@@ -146,7 +146,7 @@ export default {
             }
 
             const words = message.split(' ')
-            if (words[0] != '//') {
+            if (words[0] !== '//') {
                 this.sendMessage(message)
             } else {
                 if (this.cmdConfig[words[1]]) {
@@ -189,7 +189,7 @@ export default {
                 })
                 return
             }
-            if (params.length != 1) {
+            if (params.length !== 1) {
                 this.chatting.push({
                     userName: 'SYSTEM',
                     message: 'ERROR: command format wrong'

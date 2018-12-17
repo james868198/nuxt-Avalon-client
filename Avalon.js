@@ -1,6 +1,7 @@
 const rule = {
     name: 'Avalon',
     turnInterval: 300,
+    decisionInterval: 20,
     assassinationInterval: 120,
     charactors: {
         Loyalty: {
@@ -47,7 +48,7 @@ const rule = {
         '2': {
             playersNumbers: 2,
             charactors: ['Merlin', 'Assassin'],
-            missionNumberEachTrun: [2, 3, 2, 3, 3],
+            missionNumberEachTrun: [2, 2, 2, 2, 2],
             badTolerance: [0, 0, 0, 0, 0]
         },
         '6': {

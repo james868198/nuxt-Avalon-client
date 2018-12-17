@@ -8,7 +8,8 @@
                     .container-left-inner-mid
                         .avatar
                         .name
-                            | {{playerName}}
+                            | {{player}}
+                            | {{time}}
                     .container-left-inner-bottom
                         .container-left-inner-bottom-inner(v-if="game")
                             .player(v-for="player in game.players")
@@ -45,9 +46,16 @@ export default {
                 camp: null,
                 saw: []
             },
+            time: {
+                min: 0,
+                sec: 0
+            },
+            // commands
             cmdConfig: {
-                vote: this.vote, //cr [y or n]
-                active: this.vote //cr [s or f]
+                quest: this.quest, // q [id]
+                unQuest: this.unQuest, // uq [id]
+                vote: this.vote, // v [y or n]
+                action: this.action // a [s or f]
             }
         }
     },
@@ -86,6 +94,10 @@ export default {
                         if (res.data.player) {
                             this.player = res.data.player
                         }
+                        if (res.data.time) {
+                            this.time.min = Math.floor(res.data.time / 60)
+                            this.time.sec = res.data.time % 60
+                        }
                     }
                 }
             })
@@ -117,7 +129,7 @@ export default {
             }
 
             const words = message.split(' ')
-            if (words[0] != '//') {
+            if (words[0] !== '//') {
                 this.sendMessage(message)
             } else {
                 this.cmdConfig[words[1]](words.slice(2))
@@ -157,6 +169,31 @@ export default {
         },
         getIdentity() {
             SocketEmits.getIdentity(this.socket)
+        },
+        // actions
+        quest(id) {
+            const data = {
+                playerId: id
+            }
+            SocketEmits.quest(this.socket, data)
+        },
+        unQuest(id) {
+            const data = {
+                playerId: id
+            }
+            SocketEmits.unQuest(this.socket, data)
+        },
+        vote(vote) {
+            const data = {
+                vote: vote
+            }
+            SocketEmits.vote(this.socket, data)
+        },
+        action(action) {
+            const data = {
+                action: action
+            }
+            SocketEmits.action(this.socket, data)
         }
     }
 }

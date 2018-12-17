@@ -19,6 +19,23 @@ const getGameById = (socket, id) => {
 const getIdentity = socket => {
     socket.emit('getIdentity')
 }
+
+const quest = (socket, data) => {
+    socket.emit('quest', data)
+}
+
+const unQuest = (socket, data) => {
+    socket.emit('unQuest', data)
+}
+
+const vote = (socket, data) => {
+    socket.emit('vote', data)
+}
+
+const action = (socket, data) => {
+    socket.emit('action', data)
+}
+
 export default {
     // all
     chat,
@@ -29,5 +46,9 @@ export default {
     createGame,
     // game
     joinGame,
-    getIdentity
+    getIdentity,
+    quest,
+    unQuest,
+    vote,
+    action
 }
