@@ -4,13 +4,13 @@ import mathUtil from '../mathUtil'
 
 export default class game {
     constructor(roomName, numOfPlayers) {
-        console.log(roomName, numOfPlayers)
+        console.log('[game]new game', roomName, numOfPlayers)
         // basic
         this.name = roomName
         this.id = uuidv1()
         // condiguration
-        this.configuration = avalonRule.configuration[this.numOfPlayers]
         this.numOfPlayers = numOfPlayers
+        this.configuration = avalonRule.configuration[this.numOfPlayers]
         // status
         this.status = 'pending'
         this.missionResult = null
@@ -64,10 +64,11 @@ export default class game {
         return this.numOfPlayers == this.nowPlayerAmount
     }
     getPlayerInfoById(id) {
+        console.log('[game]getPlayerInfoById', id)
         return this.playersInfo[id]
     }
     addPlayer(data) {
-        console.log('addPlayer', data)
+        console.log('[game]addPlayer', data)
         if (this.status !== 'pending') {
             return
         }
@@ -80,18 +81,21 @@ export default class game {
         }
         this.players.push(player)
         this.nowPlayerAmount++
+        return player
     }
     removePlayer(player) {
-        console.log('removePlayer', player)
+        console.log('[game]removePlayer', player)
         this.players = this.players.filter(item => item.id !== player.id) // es6 array remove寫法
         this.nowPlayerAmount--
         return this.publicData
     }
 
     initial() {
-        if (!this.configuration) {
-            return
-        }
+        console.log('[game] initial')
+
+        // if (!this.configuration) {
+        //     return false
+        // }
         const charactors = mathUtil.shuffle(this.configuration.charactors)
         const view = {
             Merlin: [],
@@ -101,7 +105,6 @@ export default class game {
         // assign charactors
         let i = 0
         this.players.forEach(player => {
-            // const charactor = avalonRule.charactors[charactors[i]]
             if (charactors[i] == 'Merlin') {
                 view.Percival.push(i)
             } else if (charactors[i] == 'Morgana') {
@@ -141,6 +144,7 @@ export default class game {
     }
     // system actions
     resetRound() {
+        console.log('[game]resetRound')
         this.round.stage = 'questing'
         if (this.round.leader) {
             this.round.leader = (this.round.leader + 1) % this.numOfPlayers
@@ -201,16 +205,19 @@ export default class game {
         return true
     }
     start() {
+        console.log('[game]start')
         this.initial()
         this.resetRound()
         this.startTime = Date.now()
         this.status = 'start'
     }
     over() {
+        console.log('[game]over')
         this.status = 'over'
     }
     // player actions
     vote(id, voteResult) {
+        console.log('[game]vote', id, voteResult)
         if (this.round.stage !== 'voting') {
             return
         }
@@ -220,6 +227,7 @@ export default class game {
         }
     }
     quest(id) {
+        console.log('[game]quest', id)
         if (
             this.round.NumOnMission >=
             this.configuration.missionNumberEachTrun[this.round.id]
@@ -228,6 +236,12 @@ export default class game {
         }
         this.round.NumOnMission++
         this.players[id].onMission = true
+        if (
+            this.round.NumOnMission ==
+            this.configuration.missionNumberEachTrun[this.round.id]
+        ) {
+            return false
+        }
     }
     unQuest(id) {
         if (this.round.NumOnMission <= 0) {

@@ -53,7 +53,7 @@ export default {
             // commands
             cmdConfig: {
                 quest: this.quest, // q [id]
-                unQuest: this.unQuest, // uq [id]
+                // unQuest: this.unQuest, // uq [id]
                 vote: this.vote, // v [y or n]
                 action: this.action // a [s or f]
             }
@@ -177,12 +177,12 @@ export default {
             }
             SocketEmits.quest(this.socket, data)
         },
-        unQuest(id) {
-            const data = {
-                playerId: id
-            }
-            SocketEmits.unQuest(this.socket, data)
-        },
+        // unQuest(id) {
+        //     const data = {
+        //         playerId: id
+        //     }
+        //     SocketEmits.unQuest(this.socket, data)
+        // },
         vote(vote) {
             const data = {
                 vote: vote

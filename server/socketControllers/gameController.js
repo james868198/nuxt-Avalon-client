@@ -9,8 +9,8 @@ const ASSAINATION_SEC = avalonRule.assassinationInterval
 
 const controller = {
     createGame: (socket, db, data) => {
+        console.log('[gameController] create game', data)
         try {
-            console.log('controller create game')
             const gameId = db.createGame(data.roomName, data.numOfPlayers)
             if (!gameId) {
                 const respData = {
@@ -43,7 +43,7 @@ const controller = {
         }
     },
     joinGame: (socket, db, data) => {
-        console.log('controller join game')
+        console.log('[gameController] join game', data)
         try {
             const game = db.getGameById(data.gameId)
             // check game existed
@@ -110,10 +110,23 @@ const controller = {
         }
     },
     startGame: (socket, db) => {
+        console.log('[gameController] start game')
         const game = db.getGameById(socket.room)
         game.start()
+        // set paramters
         let result = null
         let time = 0
+        // game logic
+        // const respData = {
+        //     status: 'success',
+        //     data: {
+        //         time: time,
+        //         game: game.publicData
+        //     }
+        // }
+        // socket.emit('response', respData)
+        // socket.to(socket.room).emit('response', respData)
+
         const roundTimer = setInterval(() => {
             const respData = {
                 status: 'success',
@@ -124,10 +137,10 @@ const controller = {
             }
             socket.emit('response', respData)
             socket.to(socket.room).emit('response', respData)
-
             result = game.missionResult
             const roundStage = game.round.stage
             const ready = game.roundReady
+            // console.log('in:', result, roundStage, ready)
             if (roundStage === 'questing') {
                 if (time >= QUESI_SEC || ready) {
                     const respData = {
@@ -189,10 +202,9 @@ const controller = {
             }
             time++
         }, 1000)
-        console.log('run round timer')
     },
     leaveGame: (socket, db) => {
-        console.log('controller leave game')
+        console.log('[gameController] leaveGame')
         if (!socket.room) {
             return
         }
@@ -235,12 +247,12 @@ const controller = {
         }
     },
     getGames: (socket, db) => {
-        console.log('controller get games')
+        console.log('[gameController] getGames')
         const games = db.getGames
         socket.emit('games', games)
     },
     getGameById: (socket, db, id) => {
-        console.log('controller get game by id')
+        console.log('[gameController] getGameById')
         try {
             const game = db.getGameById(id)
             const respData = {
@@ -264,7 +276,7 @@ const controller = {
         }
     },
     getPlayerInfo: (socket, db) => {
-        console.log('controller get playerInfo', socket.player)
+        console.log('[gameController] getPlayerInfo', socket.player)
         if (!socket.player) {
             const respData = {
                 status: 'fail',
@@ -279,6 +291,7 @@ const controller = {
         try {
             const game = db.getGameById(socket.room)
             const playerInfo = game.getPlayerInfoById(socket.player.id)
+            console.log(game.playersInfo)
             const respData = {
                 status: 'success',
                 data: {
