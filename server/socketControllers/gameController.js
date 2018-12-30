@@ -78,7 +78,8 @@ const controller = {
                 id: game.nowPlayerAmount,
                 status: 'on'
             }
-            socket.player = game.addPlayer(playerData)
+            game.addPlayer(playerData)
+            socket.player = playerData
             socket.to(socket.room).emit('message', {
                 userName: 'system',
                 message: `Welcome ${socket.userName}.`
@@ -116,16 +117,6 @@ const controller = {
         // set paramters
         let result = null
         let time = 0
-        // game logic
-        // const respData = {
-        //     status: 'success',
-        //     data: {
-        //         time: time,
-        //         game: game.publicData
-        //     }
-        // }
-        // socket.emit('response', respData)
-        // socket.to(socket.room).emit('response', respData)
 
         const roundTimer = setInterval(() => {
             const respData = {
@@ -139,60 +130,16 @@ const controller = {
             socket.to(socket.room).emit('response', respData)
             result = game.missionResult
             const roundStage = game.round.stage
-            const ready = game.roundReady
-            // console.log('in:', result, roundStage, ready)
             if (roundStage === 'questing') {
-                if (time >= QUESI_SEC || ready) {
-                    const respData = {
-                        status: 'success',
-                        data: {
-                            game: null
-                        }
-                    }
-                    if (game.questCheck()) {
-                        respData.data.message = 'go to voting stage'
-                    } else {
-                        respData.data.message = 'quest error'
-                    }
-                    respData.data.game = game.publicData
-                    socket.emit('response', respData)
-                    socket.to(socket.room).emit('response', respData)
+                if (time >= QUESI_SEC) {
                     time = 0
                 }
             } else if (roundStage === 'voting') {
-                if (time >= VOTE_SEC || ready) {
-                    const respData = {
-                        status: 'success',
-                        data: {
-                            game: null
-                        }
-                    }
-                    if (game.voteCheck()) {
-                        respData.data.message = 'go to action stage'
-                    } else {
-                        respData.data.message = 'vote error'
-                    }
-                    respData.data.game = game.publicData
-                    socket.emit('response', respData)
-                    socket.to(socket.room).emit('response', respData)
+                if (time >= VOTE_SEC) {
                     time = 0
                 }
             } else if (roundStage === 'action') {
-                if (time >= ACTION_SEC || ready) {
-                    const respData = {
-                        status: 'success',
-                        data: {
-                            game: null
-                        }
-                    }
-                    if (game.actionCheck()) {
-                        respData.data.message = 'go to action stage'
-                    } else {
-                        respData.data.message = 'action error'
-                    }
-                    respData.data.game = game.publicData
-                    socket.emit('response', respData)
-                    socket.to(socket.room).emit('response', respData)
+                if (time >= ACTION_SEC) {
                     time = 0
                 }
             } else {
@@ -291,11 +238,11 @@ const controller = {
         try {
             const game = db.getGameById(socket.room)
             const playerInfo = game.getPlayerInfoById(socket.player.id)
-            console.log(game.playersInfo)
+            socket.player.identity = playerInfo
             const respData = {
                 status: 'success',
                 data: {
-                    player: playerInfo
+                    player: socket.player
                 }
             }
             socket.emit('response', respData)
@@ -318,7 +265,8 @@ const controller = {
             if (game.round.leader !== socket.player.id) {
                 return
             }
-            game.quest(data.playerId)
+            const questId = parseInt(data.playerId)
+            game.quest(socket.player.id, questId)
             const respData = {
                 status: 'success',
                 data: game.publicData
@@ -387,19 +335,13 @@ const controller = {
     action: (socket, db, data) => {
         try {
             const game = db.getGameById(socket.room)
-            let onMission = false
-            game.round.playersOnMission.forEach(id => {
-                if (id === socket.player.id) {
-                    onMission = true
-                }
-            })
-            if (!onMission) {
-                return
-            }
-            game.action(data.action)
+            const result = game.action(socket.player.id, data.action)
             const respData = {
                 status: 'success',
                 data: game.publicData
+            }
+            if (!result) {
+                respData.status = 'fail'
             }
             socket.emit('response', respData)
             socket.to(socket.room).emit('response', respData)

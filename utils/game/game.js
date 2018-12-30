@@ -18,17 +18,13 @@ export default class game {
         this.players = []
         // round status
         this.rounds = []
-        this.roundReady = false
-        this.round = {
-            stage: 'questing', // questing, voting, action
-            id: 0,
-            leader: null,
-            agreeCount: 0,
-            voteHistory: [],
-            NumOnMission: 0
-        }
+        this.round = null
+        this.roundNow = null
         // mission
-        this.missionFails = 0
+        this.missionFailTimes = 0
+        this.missionSuccessessTimes = 0
+        this.mission = null
+        this.missionNow = null
         this.missions = []
         // time
         this.timer = null // sent from gameController
@@ -39,7 +35,6 @@ export default class game {
         this.mostRecentModifiedTime = this.createdTime
         // private
         this.playersInfo = []
-        this.roundInfo = null
     }
     get publicData() {
         return {
@@ -52,12 +47,10 @@ export default class game {
             players: this.players,
             configuration: this.configuration,
             // round
-            round: {
-                stage: this.round.stage,
-                id: this.round.id,
-                leader: this.round.leader
-            },
-            history: this.rounds
+            round: this.roundNow,
+            mission: this.missionNow,
+            rounds: this.rounds,
+            missions: this.missions
         }
     }
     get full() {
@@ -143,70 +136,162 @@ export default class game {
         })
     }
     // system actions
+    resetAll() {
+        this.resetMission()
+        this.resetRound()
+        this.resetPlayers()
+    }
+    resetPlayers() {
+        this.players.forEach(player => {
+            player.onMission = false
+            player.voted = false
+        })
+    }
+    resetMission() {
+        console.log('[game]resetMission')
+        if (this.mission) {
+            let id = this.mission.id
+            if (this.mission.status !== 'pending') {
+                id++
+            }
+            this.mission = {
+                id: id,
+                NumOnMission: this.configuration.missionNumberEachTrun[id],
+                badTolerance: this.configuration.badTolerance[id],
+                onMission: [],
+                finishedMission: {},
+                actionCount: 0,
+                status: 'pending',
+                success: 0,
+                fail: 0
+            }
+        } else {
+            this.mission = {
+                id: 0,
+                NumOnMission: this.configuration.missionNumberEachTrun[0],
+                badTolerance: this.configuration.badTolerance[0],
+                onMission: [],
+                finishedMission: {},
+                actionCount: 0,
+                status: 'pending',
+                success: 0,
+                fail: 0
+            }
+        }
+        this.missionNow = {
+            id: this.mission.id,
+            NumOnMission: this.mission.NumOnMission,
+            badTolerance: this.mission.badTolerance,
+            onMission: this.mission.onMission
+        }
+    }
     resetRound() {
         console.log('[game]resetRound')
-        this.round.stage = 'questing'
-        if (this.round.leader) {
-            this.round.leader = (this.round.leader + 1) % this.numOfPlayers
-        } else {
-            this.round.leader = Math.round(
-                Math.random() * (this.numOfPlayers - 1)
-            )
-        }
-        this.round.agreeCount = this.numOfPlayers
+        const votes = []
         for (let i = 0; i < this.numOfPlayers; i++) {
-            this.round.voteHistory.push('Y')
+            votes.push('Y')
         }
-        this.roundReady = false
-        console.log('resetRound round leader', this.round.leader)
-    }
-    questCheck() {
-        const round = this.round
-        if (round.stage !== 'questing') {
-            return false
-        }
-        // check onMisson number correct
-        if (
-            round.NumOnMission ===
-            this.configuration.missionNumberEachTrun[round.id]
-        ) {
-            // correct, go to next stage
-            this.round.stage = 'voting'
-            return true
+        if (this.round) {
+            let id = this.round.id + 1
+            const leader = (this.round.leader + 1) % this.numOfPlayers
+            if (this.round.id > 4) {
+                id = 0
+            }
+            const missionId = this.mission.id || 0
+            this.round = {
+                stage: 'questing', // questing, voting, action
+                id: id,
+                missionId: missionId,
+                leader: leader,
+                agreeCount: this.numOfPlayers,
+                votedCount: 0,
+                voteHistory: votes,
+                actionResult: 'no action'
+            }
         } else {
-            return false
+            this.round = {
+                stage: 'questing', // questing, voting, action
+                id: 0,
+                missionId: 0,
+                leader: Math.round(Math.random() * (this.numOfPlayers - 1)),
+                agreeCount: this.numOfPlayers,
+                votedCount: 0,
+                voteHistory: votes,
+                actionResult: 'no action'
+            }
+        }
+        this.roundNow = {
+            stage: this.round.stage,
+            id: this.round.id,
+            missionId: this.round.missionId,
+            leader: this.round.leader
         }
     }
-    voteCheck() {
-        const round = this.round
-        if (round.stage !== 'voting') {
-            return false
+    pushMission() {
+        this.missions.push(this.mission)
+    }
+    pushRound() {
+        const round = {
+            id: this.round.id,
+            missionId: this.round.missionId,
+            leader: this.round.leader,
+            voteHistory: this.round.leader,
+            actionResult: this.round.actionResult
         }
-        // check vote result
-        if (2 * this.round.voteCount.agree > this.numOfPlayers) {
-            // agree, go to next stage
-            this.round.stage = 'action'
-            return true
+        this.rounds.push(round)
+    }
+    roundCheck() {
+        console.log('[game] roundCheck')
+        const round = this.round
+        const mission = this.mission
+        if (round.stage === 'questing') {
+            if (mission.onMission.length === mission.NumOnMission) {
+                // questing to voting
+                round.stage = 'voting'
+                this.roundNow.stage = 'voting'
+            }
+        } else if (round.stage === 'voting') {
+            if (round.votedCount == this.numOfPlayers) {
+                // voting to next stage
+                if (2 * round.agreeCount > this.numOfPlayers) {
+                    // agree, go to next stage
+                    console.log('[game][agreeCount]', round.agreeCount)
+                    round.stage = 'action'
+                    round.actionResult = 'action'
+                    this.roundNow.stage = 'action'
+                } else if (round.id == 5) {
+                    // disagree over 5, go to next stage
+                    round.stage = 'action'
+                } else {
+                    // disagree, go to next stage
+                    this.pushRound()
+                    this.resetAll()
+                }
+            }
+        } else if (round.stage === 'action') {
+            if (mission.actionCount === mission.NumOnMission) {
+                // All action complete
+                if (mission.fail > mission.badTolerance || round.id == 5) {
+                    // fail
+                    mission.status = 'fail'
+                    this.missionFailTimes++
+                } else {
+                    // success
+                    mission.status = 'success'
+                    this.missionSuccessessTimes++
+                }
+                this.pushRound()
+                this.pushMission()
+                this.resetAll()
+            }
         } else {
-            // disagree, go to next stage
-            this.rounds.push(this.round)
             this.resetRound()
-            return false
         }
-    }
-    actionCheck() {
-        const round = this.round
-        if (round.stage !== 'action') {
-            return false
-        }
-        // check vote result
-        this.rounds.push(this.round)
-        this.resetRound()
-        return true
     }
     start() {
         console.log('[game]start')
         this.initial()
+        this.resetMission()
         this.resetRound()
         this.startTime = Date.now()
         this.status = 'start'
@@ -216,43 +301,87 @@ export default class game {
         this.status = 'over'
     }
     // player actions
+    quest(leaderId, id) {
+        console.log('[game]quest', id)
+        if (this.round.stage !== 'questing') {
+            return false
+        }
+        if (leaderId !== this.round.leader) {
+            return false
+        }
+        if (this.mission.onMission.length >= this.mission.NumOnMission) {
+            return false
+        }
+        this.players[id].onMission = true
+        this.mission.onMission.push(id)
+        this.roundCheck()
+        return true
+    }
+    // unQuest(id) {
+    //     if (this.round.NumOnMission <= 0) {
+    //         return false
+    //     }
+    //     this.round.NumOnMission--
+    //     this.players[id].onMission = false
+    // }
     vote(id, voteResult) {
         console.log('[game]vote', id, voteResult)
         if (this.round.stage !== 'voting') {
-            return
+            return false
         }
-        if (voteResult == 'N') {
+        if (this.players[id].voted) {
+            return false
+        }
+        this.players[id].voted = true
+        this.round.votedCount++
+        if (voteResult === 'N' || voteResult === 'n') {
             this.round.voteHistory[id] = 'N'
-            this.round.voteCount.agree--
+            this.round.agreeCount--
         }
+        console.log('[game]vote agree', this.round.agreeCount)
+        this.roundCheck()
+        return true
     }
-    quest(id) {
-        console.log('[game]quest', id)
-        if (
-            this.round.NumOnMission >=
-            this.configuration.missionNumberEachTrun[this.round.id]
-        ) {
+    action(id, decision) {
+        console.log('[game]action', id, decision)
+        if (this.round.stage !== 'action') {
             return false
         }
-        this.round.NumOnMission++
-        this.players[id].onMission = true
-        if (
-            this.round.NumOnMission ==
-            this.configuration.missionNumberEachTrun[this.round.id]
-        ) {
+        let onMissionCheck = false
+        this.mission.onMission.forEach(onMissionId => {
+            if (onMissionId === id) {
+                onMissionCheck = true
+            }
+        })
+        if (this.mission.finishedMission[id]) {
+            return false
+        } else {
+            this.mission.finishedMission[id] = 'finished'
+        }
+        if (!onMissionCheck) {
             return false
         }
-    }
-    unQuest(id) {
-        if (this.round.NumOnMission <= 0) {
+        if (decision == 'f') {
+            this.mission.fail++
+        } else if (decision == 's') {
+            this.mission.success++
+        } else {
             return false
         }
-        this.round.NumOnMission--
-        this.players[id].onMission = false
+        this.mission.actionCount++
+        this.roundCheck()
+        return true
     }
-    action(decision) {
-        if (decision == 'f' && this.missionFails <= this.numOfPlayers) {
-            this.missionFails++
-        }
-    }
+    // timeout
+    // froceQuest() {
+    //     this.round.NumOnMission = this.configuration.missionNumberEachTrun[
+    //         this.round.id
+    //     ]
+    // }
+    // froceVote() {
+
+    // }
+    // froceAction() {
+
+    // }
 }

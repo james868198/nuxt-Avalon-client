@@ -42,9 +42,7 @@ export default {
             player: {
                 name: null,
                 id: null,
-                charactor: null,
-                camp: null,
-                saw: []
+                identity: null
             },
             time: {
                 min: 0,
@@ -106,7 +104,9 @@ export default {
             if (newVal) {
                 this.game = newVal
                 if (newVal.status !== 'pending') {
-                    this.getIdentity()
+                    if (!this.player.identity) {
+                        this.getIdentity()
+                    }
                 }
             }
         }
@@ -171,9 +171,9 @@ export default {
             SocketEmits.getIdentity(this.socket)
         },
         // actions
-        quest(id) {
+        quest(word) {
             const data = {
-                playerId: id
+                playerId: word[0]
             }
             SocketEmits.quest(this.socket, data)
         },
@@ -183,15 +183,15 @@ export default {
         //     }
         //     SocketEmits.unQuest(this.socket, data)
         // },
-        vote(vote) {
+        vote(word) {
             const data = {
-                vote: vote
+                vote: word[0]
             }
             SocketEmits.vote(this.socket, data)
         },
-        action(action) {
+        action(word) {
             const data = {
-                action: action
+                action: word[0]
             }
             SocketEmits.action(this.socket, data)
         }
