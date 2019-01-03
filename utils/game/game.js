@@ -12,10 +12,11 @@ export default class game {
         this.numOfPlayers = numOfPlayers
         this.configuration = avalonRule.configuration[this.numOfPlayers]
         // status
-        this.status = 'pending'
+        this.status = 'pending' // start, assasination, over
         this.missionResult = null
         this.nowPlayerAmount = 0
         this.players = []
+        this.winerCamp = null
         // round status
         this.rounds = []
         this.round = null
@@ -30,9 +31,7 @@ export default class game {
         this.timer = null // sent from gameController
         this.createdTime = Date.now()
         this.startTime = null
-        this.turnInterval = avalonRule.turnInterval
-        this.assassinationInterval = avalonRule.assassinationInterval
-        this.mostRecentModifiedTime = this.createdTime
+        // this.mostRecentModifiedTime = this.createdTime
         // private
         this.playersInfo = []
     }
@@ -42,6 +41,7 @@ export default class game {
             id: this.id,
             numOfPlayers: this.numOfPlayers,
             nowPlayerAmount: this.nowPlayerAmount,
+            winerCamp: this.winerCamp,
             status: this.status,
             name: this.name,
             players: this.players,
@@ -242,6 +242,9 @@ export default class game {
     }
     roundCheck() {
         console.log('[game] roundCheck')
+        if (this.status !== 'start') {
+            return
+        }
         const round = this.round
         const mission = this.mission
         if (round.stage === 'questing') {
@@ -280,14 +283,23 @@ export default class game {
                     mission.status = 'success'
                     this.missionSuccessessTimes++
                 }
+
                 this.pushRound()
                 this.pushMission()
                 this.resetAll()
+                // check game over
+                if (this.missionSuccessessTimes == 3) {
+                    this.status = 'assassinating'
+                } else if (this.missionFailTimes == 3) {
+                    this.winerCamp = 'R'
+                    this.status = 'over'
+                }
             }
         } else {
             this.resetRound()
         }
     }
+    // game status
     start() {
         console.log('[game]start')
         this.initial()
@@ -298,8 +310,8 @@ export default class game {
     }
     over() {
         console.log('[game]over')
-        this.status = 'over'
     }
+
     // player actions
     quest(leaderId, id) {
         console.log('[game]quest', id)
@@ -370,6 +382,22 @@ export default class game {
         }
         this.mission.actionCount++
         this.roundCheck()
+        return true
+    }
+    assassinate(id, target) {
+        console.log('[game]assassinate', id, target, this.status)
+        if (this.status !== 'assassinating') {
+            return false
+        }
+        if (this.playersInfo[id].charactor !== 'Assassin') {
+            return false
+        }
+        if (this.playersInfo[target].charactor === 'Merlin') {
+            this.winerCamp = 'R'
+        } else {
+            this.winerCamp = 'B'
+        }
+        this.status = 'over'
         return true
     }
     // timeout

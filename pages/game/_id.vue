@@ -50,10 +50,11 @@ export default {
             },
             // commands
             cmdConfig: {
-                quest: this.quest, // q [id]
+                quest: this.quest, // quest [id]
                 // unQuest: this.unQuest, // uq [id]
-                vote: this.vote, // v [y or n]
-                action: this.action // a [s or f]
+                vote: this.vote, // vote [y or n]
+                action: this.action, // action [s or f]
+                assassinate: this.assassinate // assassinate [s or f]
             }
         }
     },
@@ -76,7 +77,7 @@ export default {
                 }
             })
             this.socket.on('response', res => {
-                console.log('socket res:', res)
+                // console.log('socket res:', res)
                 if (res.status == 'fail') {
                     console.log('socket fail:')
                     if (res.error.code == 10000) {
@@ -172,6 +173,10 @@ export default {
         },
         // actions
         quest(word) {
+            if (!word[0]) {
+                console.log('no word')
+                return
+            }
             const data = {
                 playerId: word[0]
             }
@@ -184,16 +189,42 @@ export default {
         //     SocketEmits.unQuest(this.socket, data)
         // },
         vote(word) {
+            if (!word[0]) {
+                console.log('no word')
+                return
+            }
+            if (word[0] !== 'y' && word[0] !== 'n') {
+                console.log('command error')
+                return
+            }
             const data = {
                 vote: word[0]
             }
             SocketEmits.vote(this.socket, data)
         },
         action(word) {
+            if (!word[0]) {
+                console.log('no word')
+                return
+            }
+            if (word[0] !== 's' && word[0] !== 'f') {
+                console.log('command error')
+                return
+            }
             const data = {
                 action: word[0]
             }
             SocketEmits.action(this.socket, data)
+        },
+        assassinate(word) {
+            if (!word[0]) {
+                console.log('no word')
+                return
+            }
+            const data = {
+                target: word[0]
+            }
+            SocketEmits.assassinate(this.socket, data)
         }
     }
 }

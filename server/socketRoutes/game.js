@@ -32,7 +32,9 @@ export default (socket, db) => {
 
     socket.on('action', data => gameController.action(socket, db, data))
 
-    // socket.on('assassinate', gameController.assassinate(socket, db, data))
+    socket.on('assassinate', data =>
+        gameController.assassinate(socket, db, data)
+    )
 
     socket.on('disconnect', () => gameController.leaveGame(socket, db))
 

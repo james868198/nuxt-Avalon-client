@@ -129,22 +129,31 @@ const controller = {
             socket.emit('response', respData)
             socket.to(socket.room).emit('response', respData)
             result = game.missionResult
+            const status = game.status
             const roundStage = game.round.stage
-            if (roundStage === 'questing') {
-                if (time >= QUESI_SEC) {
+            if (status == 'start') {
+                if (roundStage === 'questing') {
+                    if (time >= QUESI_SEC) {
+                        time = 0
+                    }
+                } else if (roundStage === 'voting') {
+                    if (time >= VOTE_SEC) {
+                        time = 0
+                    }
+                } else if (roundStage === 'action') {
+                    if (time >= ACTION_SEC) {
+                        time = 0
+                    }
+                } else {
+                    this.round.time = 0
+                    this.resetRound()
+                    clearInterval(roundTimer)
+                }
+            } else if (status == 'assassination') {
+                if (time >= ASSAINATION_SEC) {
                     time = 0
                 }
-            } else if (roundStage === 'voting') {
-                if (time >= VOTE_SEC) {
-                    time = 0
-                }
-            } else if (roundStage === 'action') {
-                if (time >= ACTION_SEC) {
-                    time = 0
-                }
-            } else {
-                this.round.time = 0
-                this.resetRound()
+            } else if (status == 'over') {
                 clearInterval(roundTimer)
             }
             time++
@@ -260,6 +269,7 @@ const controller = {
     },
     // in game
     quest: (socket, db, data) => {
+        console.log('[gameController]quest')
         try {
             const game = db.getGameById(socket.room)
             if (game.round.leader !== socket.player.id) {
@@ -311,6 +321,7 @@ const controller = {
         }
     },
     vote: (socket, db, data) => {
+        console.log('[gameController]vote')
         try {
             const game = db.getGameById(socket.room)
             game.vote(socket.player.id, data.vote)
@@ -333,9 +344,42 @@ const controller = {
         }
     },
     action: (socket, db, data) => {
+        console.log('[gameController]action')
         try {
             const game = db.getGameById(socket.room)
             const result = game.action(socket.player.id, data.action)
+            const respData = {
+                status: 'success',
+                data: game.publicData
+            }
+            if (!result) {
+                respData.status = 'fail'
+            }
+            socket.emit('response', respData)
+            socket.to(socket.room).emit('response', respData)
+        } catch (error) {
+            console.log('error:', error)
+            const respData = {
+                status: 'fail',
+                error: {
+                    code: 11111,
+                    description: `unexpected error:${error}`
+                }
+            }
+            socket.emit('response', respData)
+        }
+    },
+    assassinate: (socket, db, data) => {
+        console.log('[gameController]assassinate')
+        if (!socket || !db || !data) {
+            return
+        }
+        if (!data.target) {
+            return
+        }
+        try {
+            const game = db.getGameById(socket.room)
+            const result = game.assassinate(socket.player.id, data.target)
             const respData = {
                 status: 'success',
                 data: game.publicData
