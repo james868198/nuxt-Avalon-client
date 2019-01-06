@@ -15,7 +15,8 @@
                             .player(v-for="player in game.players")
                                 | {{player}}:
             .container-right
-                Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
+                .container-right-inner
+                    Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
 
 </template>
 
@@ -292,6 +293,12 @@ export default {
             display: inline-block;
             height: 100%;
             width: 30%;
+            .container-right-inner {
+                position: relative;
+                height: 100%;
+                width: 100%;
+                text-align: right;
+            }
         }
     }
 }

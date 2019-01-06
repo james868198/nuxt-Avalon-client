@@ -1,5 +1,4 @@
 import gameController from '../socketControllers/gameController'
-import chatController from '../socketControllers/baseController'
 
 let users = 0
 const curRoomName = 'hall'
@@ -11,7 +10,7 @@ export default (socket, db) => {
     console.log('user:', users)
 
     socket.emit('message', {
-        userName: 'system',
+        userName: 'System',
         message: `Welcome to join us.`
     })
     // socket.on('connect', () => {
@@ -25,7 +24,7 @@ export default (socket, db) => {
         })
         users++
         socket.to(curRoomName).emit('message', {
-            userName: 'system',
+            userName: 'System',
             message: `Now we have ${users} players.
             Welcome new player ${socket.userName}.`
         })

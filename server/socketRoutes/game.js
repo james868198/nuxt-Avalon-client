@@ -1,5 +1,4 @@
 import gameController from '../socketControllers/gameController'
-import chatController from '../socketControllers/baseController'
 
 export default (socket, db) => {
     socket.userName = ''
@@ -8,7 +7,10 @@ export default (socket, db) => {
         name: 'gamer'
     }
     console.log('game socket start, id:%s', socket.id)
-
+    socket.emit('message', {
+        userName: 'System',
+        message: `Welcome!`
+    })
     // on
     socket.on('chat', data => {
         if (!socket.room) {
