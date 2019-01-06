@@ -10,7 +10,7 @@ export default class gameStore {
     getGames() {
         // const publicGames = []
         // Object.values(this.games).forEach(game => {
-        //     publicGames.push(game.publicData)
+        //     publicGames.push(game.roomData)
         // })
         return this.publicGames
     }
@@ -20,9 +20,10 @@ export default class gameStore {
         return this.games[id]
     }
     createGame(name, numOfPlayers) {
+        console.log('[gameStore]createGame')
         const game = new Game(name, numOfPlayers)
         this.games[game.id] = game
-        this.publicGames.push(game.publicData)
-        return game.publicData.id
+        this.publicGames.push(game.roomData)
+        return game.id
     }
 }

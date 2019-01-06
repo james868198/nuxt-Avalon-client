@@ -48,8 +48,9 @@ const rule = {
         '2': {
             playersNumbers: 2,
             charactors: ['Merlin', 'Assassin'],
-            missionNumberEachTrun: [2, 2, 2, 2, 2],
-            badTolerance: [0, 0, 0, 0, 0]
+            requiredNum: [2, 2, 2, 2, 2],
+            badTolerance: [0, 0, 0, 0, 0],
+            haveLadyOfTheLake: false
         },
         '6': {
             playersNumbers: 6,
@@ -61,15 +62,17 @@ const rule = {
                 'Mordred',
                 'Assassin'
             ],
-            missionNumberEachTrun: [2, 3, 4, 3, 4],
-            badTolerance: [0, 0, 0, 0, 0]
+            requiredNum: [2, 3, 4, 3, 4],
+            badTolerance: [0, 0, 0, 0, 0],
+            haveLadyOfTheLake: false
         },
         // for formal
         '5': {
             playersNumbers: 5,
             charactors: ['Loyalty', 'Loyalty', 'Merlin', 'Traitor', 'Assassin'],
-            missionNumberEachTrun: [2, 3, 2, 3, 3],
-            badTolerance: [0, 0, 0, 0, 0]
+            requiredNum: [2, 3, 2, 3, 3],
+            badTolerance: [0, 0, 0, 0, 0],
+            haveLadyOfTheLake: false
         },
         // '6': {
         //     playersNumbers: 6,
@@ -81,8 +84,9 @@ const rule = {
         //         'Traitor',
         //         'Assassin'
         //     ],
-        //     missionNumberEachTrun: [2, 3, 4, 3, 4],
-        //     badTolerance: [0, 0, 0, 0, 0]
+        //     requiredNum: [2, 3, 4, 3, 4],
+        //     badTolerance: [0, 0, 0, 0, 0],
+        //     haveLadyOfTheLake: false
         // },
         '7': {
             playersNumbers: 7,
@@ -95,8 +99,9 @@ const rule = {
                 'Assassin',
                 'Morgana'
             ],
-            missionNumberEachTrun: [2, 3, 3, 4, 4],
-            badTolerance: [0, 0, 0, 1, 0]
+            requiredNum: [2, 3, 3, 4, 4],
+            badTolerance: [0, 0, 0, 1, 0],
+            haveLadyOfTheLake: false
         },
         '8': {
             playersNumbers: 8,
@@ -110,8 +115,9 @@ const rule = {
                 'Morgana',
                 'Mordred'
             ],
-            missionNumberEachTrun: [3, 4, 4, 5, 5],
-            badTolerance: [0, 0, 0, 1, 0]
+            requiredNum: [3, 4, 4, 5, 5],
+            badTolerance: [0, 0, 0, 1, 0],
+            haveLadyOfTheLake: true
         },
         '9': {
             playersNumbers: 9,
@@ -126,8 +132,9 @@ const rule = {
                 'Morgana',
                 'Mordred'
             ],
-            missionNumberEachTrun: [3, 4, 4, 5, 5],
-            badTolerance: [0, 0, 0, 1, 0]
+            requiredNum: [3, 4, 4, 5, 5],
+            badTolerance: [0, 0, 0, 1, 0],
+            haveLadyOfTheLake: true
         },
         '10': {
             playersNumbers: 10,
@@ -143,8 +150,9 @@ const rule = {
                 'Mordred',
                 'Oberon'
             ],
-            missionNumberEachTrun: [3, 4, 4, 5, 5],
-            badTolerance: [0, 0, 0, 1, 0]
+            requiredNum: [3, 4, 4, 5, 5],
+            badTolerance: [0, 0, 0, 1, 0],
+            haveLadyOfTheLake: true
         }
     }
 }

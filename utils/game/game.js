@@ -11,6 +11,7 @@ export default class game {
         // condiguration
         this.numOfPlayers = numOfPlayers
         this.configuration = avalonRule.configuration[this.numOfPlayers]
+        this.haveLadyOfTheLake = this.configuration.haveLadyOfTheLake
         // status
         this.status = 'pending' // start, assasination, over
         this.missionResult = null
@@ -18,15 +19,26 @@ export default class game {
         this.players = []
         this.winerCamp = null
         // round status
-        this.rounds = []
         this.round = null
-        this.roundNow = null
+        this.roundInfo = null
         // mission
         this.missionFailTimes = 0
         this.missionSuccessessTimes = 0
         this.mission = null
-        this.missionNow = null
+
+        this.missionId = 1
+        this.RoundId = 1
         this.missions = []
+        for (let i = 0; i < 5; i++) {
+            this.missions.push({
+                id: i + 1,
+                requiredNum: this.configuration.requiredNum[i],
+                badTolerance: this.configuration.badTolerance[i],
+                ladyOfTheLake: null,
+                history: null,
+                roundsHistory: []
+            })
+        }
         // time
         this.timer = null // sent from gameController
         this.createdTime = Date.now()
@@ -35,22 +47,23 @@ export default class game {
         // private
         this.playersInfo = []
     }
-    get publicData() {
+    get roomData() {
         return {
             name: this.name,
             id: this.id,
             numOfPlayers: this.numOfPlayers,
-            nowPlayerAmount: this.nowPlayerAmount,
+            nowPlayerAmount: this.nowPlayerAmount
+        }
+    }
+    get gameData() {
+        return {
             winerCamp: this.winerCamp,
             status: this.status,
-            name: this.name,
             players: this.players,
-            configuration: this.configuration,
+            // board
+            missions: this.missions,
             // round
-            round: this.roundNow,
-            mission: this.missionNow,
-            rounds: this.rounds,
-            missions: this.missions
+            roundInfo: this.roundInfo
         }
     }
     get full() {
@@ -74,15 +87,22 @@ export default class game {
         }
         this.players.push(player)
         this.nowPlayerAmount++
-        return player
     }
     removePlayer(player) {
         console.log('[game]removePlayer', player)
         this.players = this.players.filter(item => item.id !== player.id) // es6 array remove寫法
         this.nowPlayerAmount--
-        return this.publicData
     }
-
+    // game status
+    start() {
+        console.log('[game]start')
+        this.initial()
+        // this.startTime = Date.now()
+        this.status = 'start'
+    }
+    over() {
+        console.log('[game]over')
+    }
     initial() {
         console.log('[game] initial')
 
@@ -134,13 +154,12 @@ export default class game {
                 }
             }
         })
-    }
-    // system actions
-    resetAll() {
+        // reset all parameters
+        this.resetPlayers()
         this.resetMission()
         this.resetRound()
-        this.resetPlayers()
     }
+    // system actions
     resetPlayers() {
         this.players.forEach(player => {
             player.onMission = false
@@ -149,96 +168,88 @@ export default class game {
     }
     resetMission() {
         console.log('[game]resetMission')
+        let id = 1
         if (this.mission) {
-            let id = this.mission.id
             if (this.mission.status !== 'pending') {
-                id++
-            }
-            this.mission = {
-                id: id,
-                NumOnMission: this.configuration.missionNumberEachTrun[id],
-                badTolerance: this.configuration.badTolerance[id],
-                onMission: [],
-                finishedMission: {},
-                actionCount: 0,
-                status: 'pending',
-                success: 0,
-                fail: 0
-            }
-        } else {
-            this.mission = {
-                id: 0,
-                NumOnMission: this.configuration.missionNumberEachTrun[0],
-                badTolerance: this.configuration.badTolerance[0],
-                onMission: [],
-                finishedMission: {},
-                actionCount: 0,
-                status: 'pending',
-                success: 0,
-                fail: 0
+                id = this.mission.id + 1
             }
         }
-        this.missionNow = {
-            id: this.mission.id,
-            NumOnMission: this.mission.NumOnMission,
-            badTolerance: this.mission.badTolerance,
-            onMission: this.mission.onMission
+        this.mission = {
+            id: id,
+            NumOnMission: this.missions[id - 1].requiredNum,
+            badTolerance: this.missions[id - 1].badTolerance,
+            actionCount: 0,
+            status: 'pending',
+            success: 0,
+            fail: 0
         }
     }
-    resetRound() {
-        console.log('[game]resetRound')
+    resetRound(resetId) {
+        console.log('[game]resetRound', resetId)
         const votes = []
+        let id = 1
+        let leader = Math.round(Math.random() * (this.numOfPlayers - 1))
         for (let i = 0; i < this.numOfPlayers; i++) {
             votes.push('Y')
         }
         if (this.round) {
-            let id = this.round.id + 1
-            const leader = (this.round.leader + 1) % this.numOfPlayers
-            if (this.round.id > 4) {
-                id = 0
+            if (this.round.id > 4 || resetId) {
+                id = 1
+            } else {
+                id = this.round.id + 1
             }
-            const missionId = this.mission.id || 0
-            this.round = {
-                stage: 'questing', // questing, voting, action
-                id: id,
-                missionId: missionId,
-                leader: leader,
-                agreeCount: this.numOfPlayers,
-                votedCount: 0,
-                voteHistory: votes,
-                actionResult: 'no action'
-            }
-        } else {
-            this.round = {
-                stage: 'questing', // questing, voting, action
-                id: 0,
-                missionId: 0,
-                leader: Math.round(Math.random() * (this.numOfPlayers - 1)),
-                agreeCount: this.numOfPlayers,
-                votedCount: 0,
-                voteHistory: votes,
-                actionResult: 'no action'
-            }
+            leader = (this.round.leader + 1) % this.numOfPlayers
         }
-        this.roundNow = {
+        this.round = {
+            stage: 'questing', // questing, voting, action
+            id: id,
+            // mission
+            leader: leader,
+            onMission: [],
+            finishedMission: {},
+            // vote
+            agreeCount: this.numOfPlayers,
+            votedCount: 0,
+            voteHistory: votes,
+            actionResult: 'no action'
+        }
+        this.setRoundInfo()
+    }
+    setRoundInfo() {
+        console.log('[game]setRoundInfo')
+        this.roundInfo = {
+            missionId: this.mission.id || null,
+            id: this.round.id,
             stage: this.round.stage,
-            id: this.round.id,
-            missionId: this.round.missionId,
-            leader: this.round.leader
-        }
-    }
-    pushMission() {
-        this.missions.push(this.mission)
-    }
-    pushRound() {
-        const round = {
-            id: this.round.id,
-            missionId: this.round.missionId,
             leader: this.round.leader,
-            voteHistory: this.round.leader,
-            actionResult: this.round.actionResult
+            onMission: this.round.onMission || []
         }
-        this.rounds.push(round)
+    }
+    setMissionHistory() {
+        console.log('[game]setMissionHistory')
+        if (!this.mission || !this.round) {
+            return
+        }
+        this.missions[this.mission.id - 1].history = {
+            leader: this.round.leader,
+            onMission: this.round.onMission,
+            numOfSuccess: this.mission.success,
+            numOfFailure: this.mission.fail,
+            result: this.mission.fail > 0 ? 'fail' : 'success'
+        }
+    }
+    setRoundHistory() {
+        console.log('[game]setRoundHistory')
+        if (!this.mission || !this.round) {
+            return
+        }
+        this.missions[this.mission.id - 1].roundsHistory.push({
+            id: this.round.id,
+            leader: this.round.leader,
+            voteHistory: this.round.voteHistory,
+            onMission: this.round.onMission,
+            result: this.round.actionResult
+        })
     }
     roundCheck() {
         console.log('[game] roundCheck')
@@ -247,28 +258,39 @@ export default class game {
         }
         const round = this.round
         const mission = this.mission
+
+        // round.stage
+
         if (round.stage === 'questing') {
-            if (mission.onMission.length === mission.NumOnMission) {
+            if (round.onMission.length === mission.NumOnMission) {
                 // questing to voting
                 round.stage = 'voting'
-                this.roundNow.stage = 'voting'
+                this.setRoundInfo()
             }
         } else if (round.stage === 'voting') {
             if (round.votedCount == this.numOfPlayers) {
                 // voting to next stage
                 if (2 * round.agreeCount > this.numOfPlayers) {
-                    // agree, go to next stage
+                    // agree
+                    // go to next stage
                     console.log('[game][agreeCount]', round.agreeCount)
                     round.stage = 'action'
                     round.actionResult = 'action'
-                    this.roundNow.stage = 'action'
+                    this.setRoundInfo()
                 } else if (round.id == 5) {
-                    // disagree over 5, go to next stage
+                    // disagree over 5
+                    // go to next stage
                     round.stage = 'action'
+                    this.setRoundInfo()
                 } else {
                     // disagree, go to next stage
-                    this.pushRound()
-                    this.resetAll()
+
+                    // set round history to missions rounds
+                    this.setRoundHistory()
+
+                    // reset players, round
+                    this.resetPlayers()
+                    this.resetRound()
                 }
             }
         } else if (round.stage === 'action') {
@@ -283,10 +305,14 @@ export default class game {
                     mission.status = 'success'
                     this.missionSuccessessTimes++
                 }
+                // set history to missions
+                this.setMissionHistory()
+                this.setRoundHistory()
+                // reset players, mission, round
+                this.resetPlayers()
+                this.resetMission()
+                this.resetRound(true)
 
-                this.pushRound()
-                this.pushMission()
-                this.resetAll()
                 // check game over
                 if (this.missionSuccessessTimes == 3) {
                     this.status = 'assassinating'
@@ -296,20 +322,12 @@ export default class game {
                 }
             }
         } else {
-            this.resetRound()
+            // error
+            // reset players, mission, round
+            this.resetPlayers()
+            this.resetMission()
+            this.resetRound(true)
         }
-    }
-    // game status
-    start() {
-        console.log('[game]start')
-        this.initial()
-        this.resetMission()
-        this.resetRound()
-        this.startTime = Date.now()
-        this.status = 'start'
-    }
-    over() {
-        console.log('[game]over')
     }
 
     // player actions
@@ -321,11 +339,11 @@ export default class game {
         if (leaderId !== this.round.leader) {
             return false
         }
-        if (this.mission.onMission.length >= this.mission.NumOnMission) {
+        if (this.round.onMission.length >= this.mission.NumOnMission) {
             return false
         }
         this.players[id].onMission = true
-        this.mission.onMission.push(id)
+        this.round.onMission.push(id)
         this.roundCheck()
         return true
     }
@@ -360,15 +378,15 @@ export default class game {
             return false
         }
         let onMissionCheck = false
-        this.mission.onMission.forEach(onMissionId => {
+        this.round.onMission.forEach(onMissionId => {
             if (onMissionId === id) {
                 onMissionCheck = true
             }
         })
-        if (this.mission.finishedMission[id]) {
+        if (this.round.finishedMission[id]) {
             return false
         } else {
-            this.mission.finishedMission[id] = 'finished'
+            this.round.finishedMission[id] = 'finished'
         }
         if (!onMissionCheck) {
             return false
@@ -402,7 +420,7 @@ export default class game {
     }
     // timeout
     // froceQuest() {
-    //     this.round.NumOnMission = this.configuration.missionNumberEachTrun[
+    //     this.round.NumOnMission = this.configuration.requiredNum[
     //         this.round.id
     //     ]
     // }

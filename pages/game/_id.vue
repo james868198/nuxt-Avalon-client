@@ -4,7 +4,7 @@
             .container-left
                 .container-left-inner
                     .container-left-inner-top
-                        | {{game}}
+                        Board(:missions="game.missions", :roundInfo="game.roundInfo", :status="game.status")
                     .container-left-inner-mid
                         .avatar
                         .name
@@ -21,13 +21,16 @@
 
 <script>
 import Chatroom from '@/components/chatroom'
+import Board from '@/components/board'
+
 import SocketEmits from '@/utils/bridges/socket/emits'
 import socketClient from '@/plugins/socket.io'
 
 export default {
     name: 'Game',
     components: {
-        Chatroom
+        Chatroom,
+        Board
     },
     data() {
         return {
@@ -35,8 +38,16 @@ export default {
             chatting: [],
             socketId: null,
             socket: null,
+            // room
+            room: null,
             // game
-            game: null,
+            game: {
+                missions: [],
+                roundInfo: {},
+                winerCamp: null,
+                status: 'pending',
+                players: []
+            },
             gameId: null,
             playerName: null,
             player: {
@@ -89,6 +100,9 @@ export default {
                     if (res.data) {
                         if (res.data.game) {
                             this.game = res.data.game
+                        }
+                        if (res.data.room) {
+                            this.room = res.data.room
                         }
                         if (res.data.player) {
                             this.player = res.data.player

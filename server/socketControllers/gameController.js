@@ -88,7 +88,7 @@ const controller = {
             const respData = {
                 status: 'success',
                 data: {
-                    game: game.publicData
+                    game: game.gameData
                 }
             }
             socket.to(socket.room).emit('response', respData)
@@ -123,7 +123,7 @@ const controller = {
                 status: 'success',
                 data: {
                     time: time,
-                    game: game.publicData
+                    game: game.gameData
                 }
             }
             socket.emit('response', respData)
@@ -179,11 +179,11 @@ const controller = {
                 return
             }
             if (game.status == 'pending') {
-                const publicData = game.removePlayer(socket.player)
+                game.removePlayer(socket.player)
                 const respData = {
                     status: 'success',
                     data: {
-                        game: publicData
+                        game: game.gameData
                     }
                 }
                 socket.to(socket.room).emit('response', respData)
@@ -214,7 +214,8 @@ const controller = {
             const respData = {
                 status: 'success',
                 data: {
-                    game: game.publicData
+                    room: game.roomData,
+                    game: game.gameData
                 }
             }
             socket.emit('response', respData)
@@ -279,7 +280,9 @@ const controller = {
             game.quest(socket.player.id, questId)
             const respData = {
                 status: 'success',
-                data: game.publicData
+                data: {
+                    game: game.gameData
+                }
             }
             socket.emit('response', respData)
             socket.to(socket.room).emit('response', respData)
@@ -304,7 +307,9 @@ const controller = {
             game.unQuest(data.playerId)
             const respData = {
                 status: 'success',
-                data: game.publicData
+                data: {
+                    game: game.gameData
+                }
             }
             socket.emit('response', respData)
             socket.to(socket.room).emit('response', respData)
@@ -327,7 +332,9 @@ const controller = {
             game.vote(socket.player.id, data.vote)
             const respData = {
                 status: 'success',
-                data: game.publicData
+                data: {
+                    game: game.gameData
+                }
             }
             socket.emit('response', respData)
             socket.to(socket.room).emit('response', respData)
@@ -350,7 +357,9 @@ const controller = {
             const result = game.action(socket.player.id, data.action)
             const respData = {
                 status: 'success',
-                data: game.publicData
+                data: {
+                    game: game.gameData
+                }
             }
             if (!result) {
                 respData.status = 'fail'
@@ -382,7 +391,9 @@ const controller = {
             const result = game.assassinate(socket.player.id, data.target)
             const respData = {
                 status: 'success',
-                data: game.publicData
+                data: {
+                    game: game.gameData
+                }
             }
             if (!result) {
                 respData.status = 'fail'
