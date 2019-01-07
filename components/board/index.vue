@@ -10,7 +10,8 @@
                             .mission-container-inner.id
                                 | {{mission.id}}
                             .mission-container-inner.required-num
-                                | {{mission.requiredNum}}
+                                CircleToken()
+                                //- | {{mission.requiredNum}}
                             .mission-container-inner.bad-tolerance(v-if="mission.badTolerance>0")
                                 | {{mission.badTolerance}}
                             .mission-container-inner.history(v-if="mission.history")
@@ -26,8 +27,13 @@
 </template>
 
 <script>
+import CircleToken from '@/components/commons/CircleToken'
+
 export default {
     name: 'Board',
+    components: {
+        CircleToken
+    },
     props: {
         missions: {
             type: Array,
@@ -38,7 +44,6 @@ export default {
         },
         roundInfo: {
             type: Object,
-            required: true,
             default: () => {
                 return null
             }
@@ -79,12 +84,13 @@ export default {
                 position: relative;
                 height: 100%;
                 width: 100%;
-                display: flex;
-                flex-direction: row;
+                // display: flex;
+                // flex-direction: row;
                 .mission {
                     position: relative;
                     height: 100%;
                     width: 20%;
+                    // min-width: 5em;
                     display: inline-block;
                     .mission-container {
                         position: relative;
@@ -94,6 +100,16 @@ export default {
                         flex-direction: column;
                         .mission-container-inner {
                             display: inline-block;
+                        }
+                        .id {
+                            position: relative;
+                            height: 5%;
+                            width: 100%;
+                        }
+                        .required-num {
+                            position: relative;
+                            height: 40%;
+                            width: 100%;
                         }
                     }
                 }
