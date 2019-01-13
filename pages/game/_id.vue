@@ -4,16 +4,21 @@
             .container-left
                 .container-left-inner
                     .container-left-inner-top
-                        Board(:missions="game.missions", :roundInfo="game.roundInfo", :status="game.status")
-                    .container-left-inner-mid
-                        .avatar
-                        .name
-                            | {{player}}
+                        .inner-container-left(v-if="player")
+                            .avatar
+                            .id
+                                | id: {{player.id}}
+                            .name
+                                | name: {{player.name}}
+                            .identity
+                                | {{player.identity}}
                             | {{time}}
+                        .inner-container-right
+                            Board(:missions="game.missions", :roundInfo="game.roundInfo", :status="game.status")
                     .container-left-inner-bottom
-                        .container-left-inner-bottom-inner(v-if="game")
-                            .player(v-for="player in game.players")
-                                | {{player}}:
+                        //- .container-left-inner-bottom-inner(v-if="game")
+                        .player-item(v-for="player in game.players")
+                            PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
             .container-right
                 .container-right-inner
                     Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
@@ -26,12 +31,14 @@ import Board from '@/components/board'
 
 import SocketEmits from '@/utils/bridges/socket/emits'
 import socketClient from '@/plugins/socket.io'
+import Player from '@/components/player'
 
 export default {
     name: 'Game',
     components: {
         Chatroom,
-        Board
+        Board,
+        PlayerItem: Player
     },
     data() {
         return {
@@ -273,18 +280,61 @@ export default {
                 // text-align: center;
                 .container-left-inner-top {
                     position: relative;
-                    height: 40%;
+                    height: 50%;
                     width: 100%;
-                }
-                .container-left-inner-mid {
-                    position: relative;
-                    height: 20%;
-                    width: 100%;
+                    display: flex;
+                    flex-direction: row;
+                    .inner-container-left {
+                        position: relative;
+                        height: 100%;
+                        width: 30%;
+                        display: inline-flex;
+                        flex-direction: column;
+                        text-align: center;
+                        .avatar {
+                            position: relative;
+                            height: 30%;
+                            width: 100%;
+                            display: inline-block;
+                        }
+                        .id {
+                            position: relative;
+                            height: 5%;
+                            width: 100%;
+                            display: inline-block;
+                        }
+                        .name {
+                            position: relative;
+                            height: 5%;
+                            width: 100%;
+                            display: inline-block;
+                        }
+                        .identity {
+                            position: relative;
+                            height: 20%;
+                            width: 100%;
+                            display: inline-block;
+                        }
+                    }
+                    .inner-container-right {
+                        position: relative;
+                        height: 100%;
+                        width: 70%;
+                        display: inline-block;
+                    }
                 }
                 .container-left-inner-bottom {
                     position: relative;
-                    height: 40%;
+                    height: 50%;
                     width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    .player-item {
+                        position: relative;
+                        height: 4em;
+                        width: 50%;
+                        display: inline-block;
+                    }
                 }
             }
         }
