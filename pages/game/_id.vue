@@ -57,6 +57,7 @@ export default {
                 players: []
             },
             gameId: null,
+            userId: null,
             playerName: null,
             player: {
                 name: null,
@@ -96,13 +97,11 @@ export default {
                 }
             })
             this.socket.on('response', res => {
-                // console.log('socket res:', res)
+                console.log('socket res:', res)
                 if (res.status == 'fail') {
                     console.log('socket fail:')
                     if (res.error.code == 10000) {
-                        console.log('socket code:')
-                        window.location.href = '/'
-                        // this.$router.push({ path: '/' })
+                        this.backToHome()
                     }
                 } else {
                     if (res.data) {
@@ -139,9 +138,13 @@ export default {
         this.socket = socketClient.io(socketUrl, socketClient.options)
     },
     mounted() {
+        if (!localStorage.userId) {
+            this.backToHome()
+        }
         if (localStorage.playerName) {
             this.playerName = localStorage.playerName
         }
+        this.userId = localStorage.userId
         this.gameId = this.$route.params.id
         this.joinGame()
     },
@@ -183,6 +186,7 @@ export default {
         joinGame() {
             const data = {
                 gameId: this.gameId,
+                userId: this.userId,
                 userName: this.playerName || 'hello kuo'
             }
             SocketEmits.joinGame(this.socket, data)
@@ -247,6 +251,10 @@ export default {
                 target: word[0]
             }
             SocketEmits.assassinate(this.socket, data)
+        },
+        // others
+        backToHome() {
+            window.location.href = '/'
         }
     }
 }

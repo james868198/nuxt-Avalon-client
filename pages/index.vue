@@ -8,7 +8,7 @@
                             .label-inner
                                 | Player ID
                         .input
-                            el-input(v-model="playerId")
+                            el-input(v-model="playerName")
                         .btn
                             el-button(type="info", @click="setPlayerName") enter
                     //- .game(v-for="game in games")
@@ -53,7 +53,7 @@ export default {
             chatting: [],
             games: [],
             socketId: null,
-            playerId: null,
+            userId: null,
             playerName: null,
             socket: null,
             gameName: 'room',
@@ -100,13 +100,6 @@ export default {
                 // this.socket = socketClient.io(socketClient.url, socketClient.options)
                 return
             }
-            this.socket.on('socketId', data => {
-                console.log('get connect')
-                if (data) {
-                    console.log('get id', data.id)
-                    this.socketId = data.id
-                }
-            })
             this.socket.on('message', data => {
                 console.log('get message', data)
                 if (data) {
@@ -120,11 +113,24 @@ export default {
                 }
             })
             this.socket.on('response', resp => {
+                console.log('get res', resp)
                 if (resp.status == 'error') {
                     console.log('ERROR:', resp.error.description)
                 } else {
+                    if (resp.socketId) {
+                        this.socketId = resp.socketId
+                    }
+                    if (resp.userData) {
+                        console.log('get userData', resp.userData)
+                        this.userId = resp.userData.id
+                        this.playerName = resp.userData.name
+                        localStorage.userId = resp.userData.id
+                        localStorage.playerName = resp.userData.name
+                    }
                     if (resp.data) {
-                        window.location = `game/${resp.data.gameId}`
+                        if (resp.data.gameId) {
+                            window.location = `game/${resp.data.gameId}`
+                        }
                     }
                 }
             })
@@ -136,8 +142,8 @@ export default {
     mounted() {
         if (localStorage.playerName) {
             this.playerName = localStorage.playerName
-            this.playerId = localStorage.playerName
-            this.setName()
+            this.userId = localStorage.userId
+            // this.setName()
         }
     },
     methods: {
@@ -166,11 +172,9 @@ export default {
             SocketEmits.chat(this.socket, data)
         },
         setPlayerName() {
-            if (this.playerId == '' || !this.playerId) {
+            if (this.playerName == '' || !this.playerName) {
                 return
             }
-            this.playerName = this.playerId
-            localStorage.playerName = this.playerName
             this.setName()
         },
         setName() {
@@ -178,6 +182,7 @@ export default {
                 return
             }
             const data = {
+                userId: this.userId,
                 userName: this.playerName
             }
             SocketEmits.setName(this.socket, data)

@@ -1,4 +1,4 @@
-# AvalonV2
+# Avalon client
 
 > Online Board Game
 
@@ -20,3 +20,15 @@ $ yarn run generate
 ```
 
 For detailed explanation on how things work, checkout [Nuxt.js docs](https://nuxtjs.org).
+
+## pages
+
+hall: home page for users to input their username and create game rooms
+game room: The page for playing avalon game. The game will start as long as there are enough players in the room.
+
+## action commands in game
+
+//vote Y or N - Vote for deciding whether mission is proceeding or not.
+//quest player id - Quest a player to join the mission.
+//action S or F - Make mission success or fail
+//assassinate player id - Assassinate the player whom you think is Merlin.

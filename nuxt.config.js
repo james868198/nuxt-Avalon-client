@@ -3,8 +3,18 @@ import pkg from './package'
 module.exports = {
     mode: 'universal',
     server: {
-        port: 8080, // default: 3000
+        port: 3000, // default: 3000
         host: '0.0.0.0' // default: localhost,
+    },
+    gameServer: {
+        port: 8080, // default: 8080
+        host: '0.0.0.0' // default: localhost,
+    },
+    mariadb: {
+        port: 3306,
+        host: '127.0.0.1',
+        user: 'james',
+        password: 'james868198'
     },
     /*
     ** env setting variables
