@@ -1,19 +1,22 @@
 <template lang="pug">
-    .player
+    .player(v-bind:class="{ selected: onMission }")
         .player-container
             .player-container-inner
                 .id
-                    | {{id}}
+                    | {{id+1}}
+
+                //- .avatar(v-if="avatar")
+                //-     | {{avatar}}
                 .status
-                    | {{status}}
-                .avatar(v-if="avatar")
-                    | {{avatar}}
+                    //- .dot-online(v-if="status == 'on' ")
+                    //- .dot-offline(v-if="status == 'off'")
+                    .dot(v-if="status", v-bind:class="{ on: status == 'on', off: status == 'off' }")
                 .name
                     | {{name}}
-                .voted
-                    | {{voted}}
-                .onMission
-                    | {{onMission}}
+                //- .voted
+                //-     | {{voted}}
+                //- .onMission
+                //-     | {{onMission}}
 </template>
 
 <script>
@@ -65,6 +68,10 @@ export default {
     position: relative;
     height: 100%;
     width: 100%;
+    background-color: white;
+    :hover {
+        opacity: 0.8;
+    }
     .player-container {
         position: absolute;
         width: 100%;
@@ -80,14 +87,32 @@ export default {
             .id {
                 position: relative;
                 height: 100%;
-                width: 5%;
+                width: 8%;
                 display: inline-block;
+                text-align: center;
+                font-style: italic;
+                font-size: 1.5em;
             }
             .status {
                 position: relative;
                 height: 100%;
-                width: 5%;
+                width: 10%;
                 display: inline-block;
+                .dot {
+                    position: absolute;
+                    top: 5px;
+                    // transform: translateY(-50%);
+                    border-radius: 50%;
+                    height: 15px;
+                    width: 15px;
+                    display: inline-block;
+                }
+                .on {
+                    background-color: green;
+                }
+                .off {
+                    background-color: red;
+                }
             }
             .avatar {
                 position: relative;
@@ -98,8 +123,10 @@ export default {
             .name {
                 position: relative;
                 height: 100%;
-                width: 20%;
+                width: 50%;
                 display: inline-block;
+                text-align: center;
+                font-size: 1.5em;
             }
             .voted {
                 position: relative;
@@ -110,10 +137,13 @@ export default {
             .onMission {
                 position: relative;
                 height: 100%;
-                width: 10%;
+                width: 20%;
                 display: inline-block;
             }
         }
     }
+}
+.selected {
+    background: orange;
 }
 </style>

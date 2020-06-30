@@ -1,33 +1,59 @@
 <template lang="pug">
     .game
         .game-container
-            .container-left
+            .container-left(v-if="game")
                 .container-left-inner
-                    .container-left-inner-top
-                        .inner-container-left(v-if="player")
-                            .avatar
-                            .id
-                                | id: {{player.id}}
-                            .name
-                                | name: {{player.name}}
-                            .identity
-                                | {{player.identity}}
-                            | {{time}}
-                        .inner-container-right
-                            Board(:missions="game.missions", :roundInfo="game.roundInfo", :status="game.status")
-                    .container-left-inner-bottom
-                        //- .container-left-inner-bottom-inner(v-if="game")
-                        .player-item(v-for="player in game.players")
-                            PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
+                    .container-left-inner-left
+                        .player-list
+                            .player-item(v-for="player in game.players.slice(0,game.numOfPlayers/2)")
+                                PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
+                    .container-left-inner-mid
+                        .game-board
+                            .game-board-header
+                                .player-info(v-if="playerInfo")
+                                    | You are player {{player.id}}
+                                    br
+                                    | You are {{playerInfo.charactor}}
+                                    br
+                                    | Your belong to {{playerInfo.camp}}
+                                    br
+                                    | you know {{playerInfo.saw}}
+                            .game-board-container
+                                .time(v-if="time")
+                                    | {{time.min}}:{{time.sec}}
+                                .round(v-if="game.roundInfo")
+                                    | This is mission {{game.roundInfo.missionId}}
+                                    br
+                                    | This is round {{game.roundInfo.id}}
+                                    br
+                                    | Player {{game.roundInfo.leader}} is the leader
+
+                                .history(v-if="game.missions")
+                                    el-select(v-model="historyRoundId" placeholder="Select")
+                                        el-option(v-for="mission in game.missions"  :key="mission.id"  :label="mission.id"  :value="mission.id")
+                            .game-board-footer
+                                | game status: {{game.status}}
+                                br
+                                | {{game.numOfPlayers}} players room
+                                hr
+                                | room id: {{gameId}}
+
+                    .container-left-inner-right
+                        .player-list
+                            .player-item(v-for="player in game.players.slice(game.numOfPlayers/2,game.numOfPlayers)")
+                                PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
             .container-right
                 .container-right-inner
                     Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
+                //- | id: {{player.id}}
+
+
 
 </template>
 
 <script>
 import Chatroom from '@/components/chatroom'
-import Board from '@/components/board'
+// import Board from '@/components/board'
 
 import SocketEmits from '@/utils/bridges/socket/emits'
 import socketClient from '@/plugins/socket.io'
@@ -37,7 +63,6 @@ export default {
     name: 'Game',
     components: {
         Chatroom,
-        Board,
         PlayerItem: Player
     },
     data() {
@@ -53,6 +78,7 @@ export default {
                 missions: [],
                 roundInfo: {},
                 winerCamp: null,
+                numOfPlayers: 0,
                 status: 'pending',
                 players: []
             },
@@ -61,9 +87,10 @@ export default {
             playerName: null,
             player: {
                 name: null,
-                id: null,
-                identity: null
+                id: null
             },
+            playerInfo: null,
+            historyRoundId: null,
             time: {
                 min: 0,
                 sec: 0
@@ -100,7 +127,7 @@ export default {
                 console.log('socket res:', res)
                 if (res.status == 'fail') {
                     console.log('socket fail:')
-                    if (res.error.code == 10000) {
+                    if (res.error.code == 10002) {
                         this.backToHome()
                     }
                 } else {
@@ -114,6 +141,10 @@ export default {
                         if (res.data.player) {
                             this.player = res.data.player
                         }
+                        if (res.data.playerInfo) {
+                            console.log('test playerInfo')
+                            this.playerInfo = res.data.playerInfo
+                        }
                         if (res.data.time) {
                             this.time.min = Math.floor(res.data.time / 60)
                             this.time.sec = res.data.time % 60
@@ -124,11 +155,10 @@ export default {
         },
         game(newVal, oldVal) {
             if (newVal) {
+                console.log('watch game status', newVal.status)
                 this.game = newVal
-                if (newVal.status !== 'pending') {
-                    if (!this.player.identity) {
-                        this.getIdentity()
-                    }
+                if (newVal.status !== 'pending' && !this.playerInfo) {
+                    this.getPlayerInfo()
                 }
             }
         }
@@ -194,8 +224,8 @@ export default {
         getGameById(id) {
             SocketEmits.getGameById(this.socket, id)
         },
-        getIdentity() {
-            SocketEmits.getIdentity(this.socket)
+        getPlayerInfo() {
+            SocketEmits.getPlayerInfo(this.socket)
         },
         // actions
         quest(word) {
@@ -279,69 +309,95 @@ export default {
             display: inline-block;
             height: 100%;
             width: 70%;
-            text-align: center;
             .container-left-inner {
                 position: relative;
                 height: 100%;
                 width: 100%;
+                display: flex;
+                flex-direction: row;
                 // margin: 0 auto;
                 // text-align: center;
-                .container-left-inner-top {
+                .container-left-inner-left {
                     position: relative;
-                    height: 50%;
-                    width: 100%;
-                    display: flex;
-                    flex-direction: row;
-                    .inner-container-left {
+                    height: 100%;
+                    width: 30%;
+                    background-color: rgb(156, 152, 152);
+                }
+                .container-left-inner-mid {
+                    position: relative;
+                    height: 100%;
+                    width: 40%;
+                    .game-board {
                         position: relative;
                         height: 100%;
-                        width: 30%;
-                        display: inline-flex;
+                        width: 100%;
+
+                        display: flex;
                         flex-direction: column;
                         text-align: center;
-                        .avatar {
+                        .game-board-header {
                             position: relative;
-                            height: 30%;
+                            height: 40%;
                             width: 100%;
                             display: inline-block;
+                            .player-info {
+                                position: relative;
+                                // font-size: 1em;
+                            }
                         }
-                        .id {
+                        .game-board-container {
                             position: relative;
-                            height: 5%;
+                            height: 50%;
                             width: 100%;
                             display: inline-block;
+                            .time {
+                                position: relative;
+                                height: 50%;
+                                width: 100%;
+                                font-size: 3em;
+                            }
+                            .stage {
+                                position: relative;
+                                height: 40%;
+                                width: 100%;
+                                font-size: 3em;
+                            }
+                            .history {
+                                position: relative;
+                                height: 10%;
+                                width: 100%;
+                            }
                         }
-                        .name {
+                        .game-board-footer {
                             position: relative;
-                            height: 5%;
+                            height: 10%;
                             width: 100%;
                             display: inline-block;
+                            .room-info {
+                                position: relative;
+                                padding: 0.5em;
+                            }
                         }
-                        .identity {
-                            position: relative;
-                            height: 20%;
-                            width: 100%;
-                            display: inline-block;
-                        }
-                    }
-                    .inner-container-right {
-                        position: relative;
-                        height: 100%;
-                        width: 70%;
-                        display: inline-block;
                     }
                 }
-                .container-left-inner-bottom {
+                .container-left-inner-right {
                     position: relative;
-                    height: 50%;
+                    height: 100%;
+                    width: 30%;
+                    background-color: rgb(156, 152, 152);
+                }
+                .player-list {
+                    position: relative;
+                    height: 100%;
                     width: 100%;
                     display: flex;
                     flex-direction: column;
                     .player-item {
                         position: relative;
-                        height: 4em;
-                        width: 50%;
-                        display: inline-block;
+                        height: 5em;
+                        margin-top: 0.5em;
+                        margin-left: 0.5em;
+                        margin-right: 0.5em;
                     }
                 }
             }
