@@ -11,11 +11,12 @@
                         .game-board
                             .game-board-header
                                 .player-info(v-if="playerInfo")
+                                    br
                                     | You are player {{player.id}}
                                     br
                                     | You are {{playerInfo.charactor}}
                                     br
-                                    | Your belong to {{playerInfo.camp}}
+                                    | You belong to {{playerInfo.camp}}
                                     br
                                     | you know {{playerInfo.saw}}
                             .game-board-container
@@ -27,7 +28,7 @@
                                     | This is round {{game.roundInfo.id}}
                                     br
                                     | Player {{game.roundInfo.leader}} is the leader
-
+                                    br
                                 .history(v-if="game.missions")
                                     el-select(v-model="historyRoundId" placeholder="Select")
                                         el-option(v-for="mission in game.missions"  :key="mission.id"  :label="mission.id"  :value="mission.id")
@@ -238,12 +239,16 @@ export default {
             }
             SocketEmits.quest(this.socket, data)
         },
-        // unQuest(id) {
-        //     const data = {
-        //         playerId: id
-        //     }
-        //     SocketEmits.unQuest(this.socket, data)
-        // },
+        unquest(word) {
+            if (!word[0]) {
+                console.log('no word')
+                return
+            }
+            const data = {
+                playerId: word[0]
+            }
+            SocketEmits.unQuest(this.socket, data)
+        },
         vote(word) {
             if (!word[0]) {
                 console.log('no word')
@@ -352,19 +357,19 @@ export default {
                             display: inline-block;
                             .time {
                                 position: relative;
-                                height: 50%;
+                                height: 30%;
                                 width: 100%;
                                 font-size: 3em;
                             }
                             .stage {
                                 position: relative;
-                                height: 40%;
+                                height: 50%;
                                 width: 100%;
                                 font-size: 3em;
                             }
                             .history {
                                 position: relative;
-                                height: 10%;
+                                height: 20%;
                                 width: 100%;
                             }
                         }

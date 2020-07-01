@@ -30,5 +30,6 @@ game room: The page for playing avalon game. The game will start as long as ther
 
 //vote Y or N - Vote for deciding whether mission is proceeding or not.
 //quest player id - Quest a player to join the mission.
+//unquest player id - Remove a player from the mission.
 //action S or F - Make mission success or fail
 //assassinate player id - Assassinate the player whom you think is Merlin.
