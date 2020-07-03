@@ -5,14 +5,19 @@
     .top-side
         .top-side-container
             .top-side-container-inner
-                .title Nuxt-Socket.io-Avalon
+                .title(v-on:click="backToHomePage") Nuxt-Avalon
     .container
         router-view
 </template>
 
 <script>
 export default {
-    name: 'DefaultContainer'
+    name: 'DefaultContainer',
+    methods: {
+        backToHomePage: () => {
+            window.location = '/'
+        }
+    }
 }
 </script>
 
@@ -30,8 +35,8 @@ $head-height: 10vh;
         top: 0%;
         width: 100vw;
         height: $head-height;
-        background-color: black;
-        color: #00bfff;
+        background-color: #363636;
+        color: white;
         .top-side-container {
             position: relative;
             width: 100%;
@@ -43,6 +48,7 @@ $head-height: 10vh;
                 transform: translateY(-50%);
                 .title {
                     font-size: 2em;
+                    cursor: pointer;
                 }
             }
         }

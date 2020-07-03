@@ -4,15 +4,15 @@
             .container-left(v-if="game")
                 .container-left-inner
                     .container-left-inner-left
-                        .player-list
-                            .player-item(v-for="player in game.players.slice(0,game.numOfPlayers/2)")
+                        .player-list(v-if="game.players")
+                            .player-item(v-for="player in game.players.slice(0,game.room.numOfPlayers/2)")
                                 PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
                     .container-left-inner-mid
                         .game-board
                             .game-board-header
                                 .player-info(v-if="playerInfo")
                                     br
-                                    | You are player {{player.id}}
+                                    | You are player {{player.id+1}}
                                     br
                                     | You are {{playerInfo.charactor}}
                                     br
@@ -22,26 +22,30 @@
                             .game-board-container
                                 .time(v-if="time")
                                     | {{time.min}}:{{time.sec}}
-                                .round(v-if="game.roundInfo")
-                                    | This is mission {{game.roundInfo.missionId}}
+                                .info(v-if="game.roundInfo")
+                                    | This is mission {{game.missions.length}} round  {{game.roundInfo.roundId+1}}
                                     br
-                                    | This is round {{game.roundInfo.id}}
+                                    | Stage: {{game.data.stage}}
                                     br
-                                    | Player {{game.roundInfo.leader}} is the leader
+                                    | Player {{game.roundInfo.leader+1}} is the leader
                                     br
+                                    br
+                                    .mission(v-if="game.missions.length>0")
+                                        | We need {{game.missions[game.missions.length-1].NumOnMission}} people for mission
                                 .history(v-if="game.missions")
-                                    el-select(v-model="historyRoundId" placeholder="Select")
-                                        el-option(v-for="mission in game.missions"  :key="mission.id"  :label="mission.id"  :value="mission.id")
-                            .game-board-footer
-                                | game status: {{game.status}}
+                                    | {{game.missions}}
+                                    //- el-select(v-model="historyRoundId" placeholder="Select")
+                                    //-     el-option(v-for="mission in game.missions"  :key="mission.id"  :label="mission.id"  :value="mission.id")
+                            .game-board-footer(v-if="game.room")
+                                | game status: {{game.room.status}}
                                 br
-                                | {{game.numOfPlayers}} players room
+                                | {{game.room.numOfPlayers}} players room
                                 hr
-                                | room id: {{gameId}}
+                                | room id: {{game.room.id}}
 
                     .container-left-inner-right
-                        .player-list
-                            .player-item(v-for="player in game.players.slice(game.numOfPlayers/2,game.numOfPlayers)")
+                        .player-list(v-if="game.players")
+                            .player-item(v-for="player in game.players.slice(game.room.numOfPlayers/2,game.room.numOfPlayers)")
                                 PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
             .container-right
                 .container-right-inner
@@ -72,18 +76,15 @@ export default {
             chatting: [],
             socketId: null,
             socket: null,
-            // room
-            room: null,
             // game
             game: {
-                missions: [],
-                roundInfo: {},
-                winerCamp: null,
-                numOfPlayers: 0,
-                status: 'pending',
-                players: []
+                roomData: null,
+                gameData: null,
+                missions: null,
+                voteHistory: null,
+                roundInfo: null,
+                players: null
             },
-            gameId: null,
             userId: null,
             playerName: null,
             player: {
@@ -99,7 +100,7 @@ export default {
             // commands
             cmdConfig: {
                 quest: this.quest, // quest [id]
-                // unQuest: this.unQuest, // uq [id]
+                unquest: this.unquest, // uq [id]
                 vote: this.vote, // vote [y or n]
                 action: this.action, // action [s or f]
                 assassinate: this.assassinate // assassinate [s or f]
@@ -127,7 +128,7 @@ export default {
             this.socket.on('response', res => {
                 console.log('socket res:', res)
                 if (res.status == 'fail') {
-                    console.log('socket fail:')
+                    console.log('socket fail:', res.error)
                     if (res.error.code == 10002) {
                         this.backToHome()
                     }
@@ -135,9 +136,6 @@ export default {
                     if (res.data) {
                         if (res.data.game) {
                             this.game = res.data.game
-                        }
-                        if (res.data.room) {
-                            this.room = res.data.room
                         }
                         if (res.data.player) {
                             this.player = res.data.player
@@ -156,9 +154,9 @@ export default {
         },
         game(newVal, oldVal) {
             if (newVal) {
-                console.log('watch game status', newVal.status)
+                console.log('watch game status', newVal.room.status)
                 this.game = newVal
-                if (newVal.status !== 'pending' && !this.playerInfo) {
+                if (newVal.room.status !== 'pending' && !this.playerInfo) {
                     this.getPlayerInfo()
                 }
             }
@@ -177,7 +175,7 @@ export default {
         }
         this.userId = localStorage.userId
         this.gameId = this.$route.params.id
-        this.joinGame()
+        this.joinGame() // get game data
     },
     methods: {
         classifyMessage(message) {
@@ -218,7 +216,7 @@ export default {
             const data = {
                 gameId: this.gameId,
                 userId: this.userId,
-                userName: this.playerName || 'hello kuo'
+                userName: this.playerName || 'Anonymous47'
             }
             SocketEmits.joinGame(this.socket, data)
         },
@@ -230,6 +228,7 @@ export default {
         },
         // actions
         quest(word) {
+            console.log('[quest]', word)
             if (!word[0]) {
                 console.log('no word')
                 return
@@ -240,6 +239,7 @@ export default {
             SocketEmits.quest(this.socket, data)
         },
         unquest(word) {
+            console.log('[unquest]', word)
             if (!word[0]) {
                 console.log('no word')
                 return
@@ -250,6 +250,7 @@ export default {
             SocketEmits.unQuest(this.socket, data)
         },
         vote(word) {
+            console.log('[vote]', word)
             if (!word[0]) {
                 console.log('no word')
                 return
@@ -264,6 +265,7 @@ export default {
             SocketEmits.vote(this.socket, data)
         },
         action(word) {
+            console.log('[action]', word)
             if (!word[0]) {
                 console.log('no word')
                 return
@@ -320,13 +322,13 @@ export default {
                 width: 100%;
                 display: flex;
                 flex-direction: row;
+                background-color: rgb(156, 152, 152);
                 // margin: 0 auto;
                 // text-align: center;
                 .container-left-inner-left {
                     position: relative;
                     height: 100%;
                     width: 30%;
-                    background-color: rgb(156, 152, 152);
                 }
                 .container-left-inner-mid {
                     position: relative;
@@ -336,7 +338,9 @@ export default {
                         position: relative;
                         height: 100%;
                         width: 100%;
-
+                        // margin-top: 0.5em;
+                        // margin-bottom: 0.5em;
+                        background-color: white;
                         display: flex;
                         flex-direction: column;
                         text-align: center;
@@ -361,11 +365,11 @@ export default {
                                 width: 100%;
                                 font-size: 3em;
                             }
-                            .stage {
+                            .info {
                                 position: relative;
                                 height: 50%;
                                 width: 100%;
-                                font-size: 3em;
+                                font-size: 1.5em;
                             }
                             .history {
                                 position: relative;
@@ -389,7 +393,6 @@ export default {
                     position: relative;
                     height: 100%;
                     width: 30%;
-                    background-color: rgb(156, 152, 152);
                 }
                 .player-list {
                     position: relative;
