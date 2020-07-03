@@ -23,17 +23,20 @@
                                 .time(v-if="time")
                                     | {{time.min}}:{{time.sec}}
                                 .info(v-if="game.roundInfo")
-                                    | This is mission {{game.missions.length}} round  {{game.roundInfo.roundId+1}}
+                                    | This is mission: {{game.missions.length}}, round: {{game.roundInfo.roundId+1}}
                                     br
-                                    | Stage: {{game.data.stage}}
+                                    | Stage: #[strong.stage {{game.data.stage}}]
                                     br
-                                    | Player {{game.roundInfo.leader+1}} is the leader
+                                    | #[strong Player {{game.roundInfo.leader+1}}] is the leader
                                     br
+                                    | W:{{game.data.successCounter}} F: {{game.data.failCounter}}
                                     br
-                                    .mission(v-if="game.missions.length>0")
-                                        | We need {{game.missions[game.missions.length-1].NumOnMission}} people for mission
-                                .history(v-if="game.missions")
+                                    | Winner: #[strong {{game.data.winner}}]
+                                    br
+                                .mission(v-if="game.missions")
                                     | {{game.missions}}
+                                .history(v-if="game.voteHistory")
+                                    | {{game.voteHistory}}
                                     //- el-select(v-model="historyRoundId" placeholder="Select")
                                     //-     el-option(v-for="mission in game.missions"  :key="mission.id"  :label="mission.id"  :value="mission.id")
                             .game-board-footer(v-if="game.room")
@@ -78,8 +81,8 @@ export default {
             socket: null,
             // game
             game: {
-                roomData: null,
-                gameData: null,
+                room: null,
+                data: null,
                 missions: null,
                 voteHistory: null,
                 roundInfo: null,
@@ -229,12 +232,12 @@ export default {
         // actions
         quest(word) {
             console.log('[quest]', word)
-            if (!word[0]) {
+            if (!word) {
                 console.log('no word')
                 return
             }
             const data = {
-                playerId: word[0]
+                memberList: word
             }
             SocketEmits.quest(this.socket, data)
         },
@@ -346,7 +349,7 @@ export default {
                         text-align: center;
                         .game-board-header {
                             position: relative;
-                            height: 40%;
+                            height: 20%;
                             width: 100%;
                             display: inline-block;
                             .player-info {
@@ -356,20 +359,28 @@ export default {
                         }
                         .game-board-container {
                             position: relative;
-                            height: 50%;
+                            height: 70%;
                             width: 100%;
                             display: inline-block;
                             .time {
                                 position: relative;
-                                height: 30%;
+                                height: 20%;
                                 width: 100%;
                                 font-size: 3em;
                             }
                             .info {
                                 position: relative;
-                                height: 50%;
+                                height: 40%;
                                 width: 100%;
-                                font-size: 1.5em;
+                                // font-size: 1.5em;
+                                .stage {
+                                    color: red;
+                                }
+                            }
+                            .mission {
+                                position: relative;
+                                height: 20%;
+                                width: 100%;
                             }
                             .history {
                                 position: relative;
