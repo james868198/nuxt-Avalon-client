@@ -22,21 +22,23 @@
                             .game-board-container
                                 .time(v-if="time")
                                     | {{time.min}}:{{time.sec}}
-                                .info(v-if="game.roundInfo")
-                                    | This is mission: {{game.missions.length}}, round: {{game.roundInfo.roundId+1}}
-                                    br
-                                    | Stage: #[strong.stage {{game.data.stage}}]
-                                    br
-                                    | #[strong Player {{game.roundInfo.leader+1}}] is the leader
-                                    br
-                                    | W:{{game.data.successCounter}} F: {{game.data.failCounter}}
-                                    br
-                                    | Winner: #[strong {{game.data.winner}}]
-                                    br
-                                .mission(v-if="game.missions")
-                                    | {{game.missions}}
-                                .history(v-if="game.voteHistory")
-                                    | {{game.voteHistory}}
+                                .game-board
+                                    InfoBoard(:missions="game.missions", :history = "game.voteHistory", :info="game.roundInfo", :data="game.data")
+                                //- .info(v-if="game.roundInfo")
+                                //-     | This is mission: {{game.missions.length}}, round: {{game.roundInfo.roundId+1}}
+                                //-     br
+                                //-     | Stage: #[strong.stage {{game.data.stage}}]
+                                //-     br
+                                //-     | #[strong Player {{game.roundInfo.leader+1}}] is the leader
+                                //-     br
+                                //-     | W:{{game.data.successCounter}} F: {{game.data.failCounter}}
+                                //-     br
+                                //-     | Winner: #[strong {{game.data.winner}}]
+                                //-     br
+                                //- .mission(v-if="game.missions")
+                                //-     | {{game.missions}}
+                                //- .history(v-if="game.voteHistory")
+                                //-     | {{game.voteHistory}}
                                     //- el-select(v-model="historyRoundId" placeholder="Select")
                                     //-     el-option(v-for="mission in game.missions"  :key="mission.id"  :label="mission.id"  :value="mission.id")
                             .game-board-footer(v-if="game.room")
@@ -61,7 +63,7 @@
 
 <script>
 import Chatroom from '@/components/chatroom'
-// import Board from '@/components/board'
+import Board from '@/components/board'
 
 import SocketEmits from '@/utils/bridges/socket/emits'
 import socketClient from '@/plugins/socket.io'
@@ -71,6 +73,7 @@ export default {
     name: 'Game',
     components: {
         Chatroom,
+        InfoBoard: Board,
         PlayerItem: Player
     },
     data() {
@@ -341,6 +344,7 @@ export default {
                         position: relative;
                         height: 100%;
                         width: 100%;
+                        min-width: 20em;
                         // margin-top: 0.5em;
                         // margin-bottom: 0.5em;
                         background-color: white;
@@ -364,9 +368,14 @@ export default {
                             display: inline-block;
                             .time {
                                 position: relative;
-                                height: 20%;
+                                height: 10%;
                                 width: 100%;
                                 font-size: 3em;
+                            }
+                            .game-board {
+                                position: relative;
+                                height: 90%;
+                                width: 100%;
                             }
                             .info {
                                 position: relative;
