@@ -2,28 +2,46 @@
     .main
         .main-container
             .container-left
-                .container-left-inner
-                    .container-left-inner-top
-                        .label
-                            .label-inner
-                                | Player ID
-                        .input
-                            el-input(v-model="playerName")
-                        .btn
-                            el-button(type="info", @click="setPlayerName") enter
+                .main-board
+                    .main-board-top
+                        .main-board-column
+                            .main-board-column-inner
+                                .main-board-column-container
+                                    .label
+                                        .label-inner
+                                            | Player Name
+                                    .input
+                                        el-input(v-model="playerName")
+                                    .btn
+                                        el-button(type="info", @click="setPlayerName") enter
+
+                        .main-board-column
+                            .main-board-column-inner
+                                .main-board-column-container
+                                    .label
+                                        .label-inner
+                                            | Create Room
+                                    .input
+                                        el-input.input-left(v-model="gameName", placeholder="Room Name")
+                                        el-select.input-right(v-model="numOfPlayers", placeholder="Player Number")
+                                            el-option(v-for="item in numOfPlayersOptions", :key="item.value", :label="item.label", :value="item.value")
+                                    .btn
+                                        el-button(type="info", @click="createGame") create
+                        .main-board-column
+                            .main-board-column-inner
+                                .main-board-column-container
+                                    .label
+                                        .label-inner
+                                            | Join Room
+                                    .input
+                                        el-input(v-model="roomId", placeholder="Room ID")
+                                    .btn
+                                        el-button(type="info", @click="joinGame") GO
+                    //-     .main-board-column
+                    //- .container-left-inner-bottom
+
                     //- .game(v-for="game in games")
                     //-     | {{game.name}}
-                    .container-left-inner-mid
-                        .label
-                            .label-inner
-                                | create game
-                        .input
-                            el-input(v-model="gameName")
-                            el-select(v-model="numOfPlayers")
-                                el-option(v-for="item in numOfPlayersOptions", :key="item.value", :label="item.label", :value="item.value")
-                        .btn
-                            el-button(type="info", @click="createGame") enter
-                    .container-left-inner-bottom
                     //- .line
                     //-     .label
                     //-         .label-inner
@@ -56,8 +74,8 @@ export default {
             userId: null,
             playerName: null,
             socket: null,
-            gameName: 'room',
-            numOfPlayers: 5,
+            gameName: null,
+            numOfPlayers: null,
             numOfPlayersOptions: [
                 {
                     value: 2,
@@ -88,10 +106,7 @@ export default {
                     label: '10'
                 }
             ],
-            cmdConfig: {
-                gg: this.getGames, //gg
-                jg: this.joinGame //cr [id]
-            }
+            roomId: null
         }
     },
     watch: {
@@ -147,19 +162,34 @@ export default {
         }
     },
     methods: {
+        // open() {
+        //     this.$confirm(
+        //         'This will permanently delete the file. Continue?',
+        //         'Warning',
+        //         {
+        //             confirmButtonText: 'OK',
+        //             cancelButtonText: 'Cancel',
+        //             type: 'warning'
+        //         }
+        //     )
+        //         .then(() => {
+        //             this.$message({
+        //                 type: 'success',
+        //                 message: 'Delete completed'
+        //             })
+        //         })
+        //         .catch(() => {
+        //             this.$message({
+        //                 type: 'info',
+        //                 message: 'Delete canceled'
+        //             })
+        //         })
+        // },
         classifyMessage(message) {
             if (!message || message == '') {
                 return
             }
-
-            const words = message.split(' ')
-            if (words[0] !== '//') {
-                this.sendMessage(message)
-            } else {
-                if (this.cmdConfig[words[1]]) {
-                    this.cmdConfig[words[1]](words.slice(2))
-                }
-            }
+            this.sendMessage(message)
         },
         sendMessage(message) {
             if (!this.socket) {
@@ -187,23 +217,13 @@ export default {
             }
             SocketEmits.setName(this.socket, data)
         },
-        joinGame(params) {
-            if (!params) {
-                this.chatting.push({
-                    userName: 'SYSTEM',
-                    message: 'ERROR: no params'
-                })
+        joinGame() {
+            if (!this.roomId) {
+                console.log('[joinGame] fail: roomId is empty')
                 return
             }
-            if (params.length !== 1) {
-                this.chatting.push({
-                    userName: 'SYSTEM',
-                    message: 'ERROR: command format wrong'
-                })
-                return
-            }
-            const gameId = params[0]
-            this.$router.push(`game/${gameId}`)
+            window.location = `game/${this.roomId}`
+            // this.$router.push(`game/${this.roomId}`)
         },
         createGame() {
             if (!this.socket) {
@@ -249,78 +269,77 @@ export default {
             height: 100%;
             width: 70%;
             text-align: center;
-            .container-left-inner {
+            .main-board {
                 position: relative;
                 height: 100%;
                 width: 80%;
                 margin: 0 auto;
                 text-align: center;
-                .container-left-inner-top {
+                overflow: scroll;
+                .main-board-column {
                     position: relative;
                     width: 100%;
-                    display: flex;
-                    flex-direction: row;
-                    padding-top: 2em;
-                    font-size: 1.5em;
-                    .label {
-                        display: inline-block;
-                        position: relative;
-                        width: 20%;
-                        .label-inner {
-                            position: absolute;
+                    height: 6em;
+                    .main-board-column-inner {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        // height: 90%;
+                        width: 100%;
+                        .main-board-column-container {
+                            position: relative;
+                            height: 90%;
                             width: 100%;
-                            top: 50%;
-                            transform: translateY(-50%);
-                            text-align: center;
+                            display: flex;
+                            flex-direction: row;
+                            .label {
+                                display: inline-block;
+                                position: relative;
+                                width: 25%;
+                                font-size: 1.2em;
+                                text-align: center;
+                                .label-inner {
+                                    position: absolute;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                }
+                            }
+                            .input {
+                                display: inline-block;
+                                position: relative;
+                                width: 50%;
+                                text-align: left;
+                                .input-left {
+                                    position: relative;
+                                    height: 100%;
+                                    max-width: 40%;
+                                    display: inline-block;
+                                }
+                                .input-right {
+                                    margin-left: 1em;
+                                    position: relative;
+                                    height: 100%;
+                                    max-width: 40%;
+                                    display: inline-block;
+                                }
+                            }
+                            .btn {
+                                display: inline-block;
+                                position: relative;
+                                width: 25%;
+                                text-align: center;
+                            }
                         }
                     }
-                    .input {
-                        display: inline-block;
-                        position: relative;
-                        width: 40%;
-                        text-align: center;
-                    }
-                    .btn {
-                        display: inline-block;
-                        position: relative;
-                        width: 30%;
-                        text-align: center;
-                    }
                 }
-                .container-left-inner-mid {
-                    position: relative;
-                    width: 100%;
-                    display: flex;
-                    flex-direction: row;
-                    padding-top: 2em;
-                    font-size: 1.5em;
-                    .label {
-                        display: inline-block;
-                        position: relative;
-                        width: 20%;
-                        .label-inner {
-                            position: absolute;
-                            width: 100%;
-                            top: 50%;
-                            transform: translateY(-50%);
-                            text-align: center;
-                        }
-                    }
-                    .input {
-                        display: inline-block;
-                        position: relative;
-                        width: 40%;
-                        text-align: center;
-                    }
-                    .btn {
-                        display: inline-block;
-                        position: relative;
-                        width: 30%;
-                        text-align: center;
-                    }
-                }
-                .container-left-inner-bottom {
-                }
+                // .container-left-inner-mid {
+                //     position: relative;
+                //     width: 100%;
+                //     display: flex;
+                //     flex-direction: row;
+                //     padding-top: 2em;
+                //     font-size: 1.5em;
+                // }
             }
         }
         .container-right {

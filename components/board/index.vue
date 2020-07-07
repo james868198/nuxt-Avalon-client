@@ -1,5 +1,6 @@
 <template lang="pug">
     .board
+        //- el-button(type="info", @click="showModal = true") test
         .board-container
             .board-container-top
                 .info-board(v-if="data")
@@ -28,46 +29,65 @@
                         .mission-list(v-if="missions")
                             .mission(v-for="(mission, missionId) in missions")
                                 .mission-inner
-                                    .mission-container
+                                    .mission-container(v-bind:class="{ success: mission.result == 'success', fail: mission.result == 'fail'}")
                                         .mission-left.right-board2
                                             .id
                                                 | {{missionId+1}}
                                         .mission-mid(v-if="history")
                                             .round-list
-                                                .round(v-for="(voteRecerd, roundId) in history[missionId]" v-on:click="showHistory(voteRecerd)")
+                                                .round(v-for="(roundRecerd, roundId) in history[missionId]" v-on:click="showRecord(roundRecerd)")
                                                     .vertical-center
                                                         .round-container
                                                             | {{roundId+1}}
-                                        //- .mission-right
-
-
-
-
-
-
+        modal(v-if='showModal' @close="closeRecord")
+            .modal-header(slot="header")
+                | Voting Result
+            .modal-body(slot="body")
+                hr
+                .modal-body-container(v-if='roundData')
+                    .leader
+                        | Leader: {{roundData.leader+1}}
+                    .on-mission(v-if='roundData.onMission')
+                        | Players in mission: &nbsp
+                        .player(v-for="id in roundData.onMission")
+                            | {{id+1}}
+                    .vote-results(v-if='roundData.voteResult')
+                        .vote-results-top
+                            .agree Agree: &nbsp
+                            .player(v-for="(result, playerId) in roundData.voteResult" v-if="result == 'T'")
+                                | {{playerId+1}}
+                        .vote-results-bottom
+                            .disagree Disagree: &nbsp
+                            .player(v-for="(result, playerId) in roundData.voteResult" v-if="result == 'F'")
+                                | {{playerId+1}}
+                hr
+            .modal-footer(slot="footer")
+                el-button(round type="info", @click="closeRecord") Close
 </template>
 
 <script>
 import CircleToken from '@/components/commons/CircleToken'
+import Modal from '@/components/modal'
 
 export default {
     name: 'Board',
     components: {
-        CircleToken
+        CircleToken,
+        modal: Modal
     },
     props: {
         missions: {
             type: Array,
             required: true,
             default: () => {
-                return []
+                return null
             }
         },
         history: {
             type: Array,
             required: true,
             default: () => {
-                return []
+                return null
             }
         },
         info: {
@@ -84,14 +104,25 @@ export default {
         }
     },
     data() {
-        return {}
+        return {
+            showModal: false,
+            roundData: null
+        }
     },
     created() {
         console.log('board created')
     },
     methods: {
-        showHistory(history) {
-            console.log('[showHistory]', history)
+        showRecord(roundRecerd) {
+            console.log('[showRecord]', roundRecerd)
+            this.showModal = true
+            this.roundData = roundRecerd
+            return
+        },
+        closeRecord() {
+            console.log('[closeRecord]')
+            this.showModal = false
+            this.roundData = null
             return
         }
     }
@@ -99,7 +130,17 @@ export default {
 </script>
 <style lang="scss">
 $mission-column-height: 3em;
-$record-btn-size: 2em;
+$record-btn-size: 1.5em;
+$modal-header-size: 1.5em;
+$modal-body-size: 1.2em;
+// $board-background-color: #f9fce4;
+$board-background-color: #ffffff;
+
+$border-color: #bada55;
+$mission-background-noresult: #ffffff;
+$background-red: #ff6f6f;
+$background-blue: #487ef1;
+$background-agree: #51cc6f;
 
 .board {
     position: relative;
@@ -130,9 +171,9 @@ $record-btn-size: 2em;
                     display: flex;
                     flex-direction: column;
                     text-align: center;
-                    background-color: #dbe5e6;
-                    border: 3px solid #bada55;
-                    border-radius: 10px;
+                    background-color: $board-background-color;
+                    border: 2px solid $border-color;
+                    border-radius: 8px;
                     overflow: hidden;
                     .info-board-top {
                         position: relative;
@@ -217,7 +258,7 @@ $record-btn-size: 2em;
                                 height: 100%;
                                 width: 50%;
                                 display: inline-block;
-                                background-color: blue;
+                                background-color: $background-blue;
                                 text-align: center;
                             }
                             .score-board-right {
@@ -225,7 +266,7 @@ $record-btn-size: 2em;
                                 height: 100%;
                                 width: 50%;
                                 display: inline-block;
-                                background-color: red;
+                                background-color: $background-red;
                                 text-align: center;
                             }
                         }
@@ -250,7 +291,7 @@ $record-btn-size: 2em;
                     height: 90%;
                     // min-height: 18em;
                     width: 100%;
-                    border: 3px solid #bada55;
+                    border: 3px solid $border-color;
                     border-radius: 10px;
                     overflow: hidden;
                     .mission-list {
@@ -259,7 +300,7 @@ $record-btn-size: 2em;
                         width: 100%;
                         display: flex;
                         flex-direction: column;
-                        background-color: #dbe5e6;
+                        background-color: $board-background-color;
                         .mission {
                             position: relative;
                             height: 20%;
@@ -280,9 +321,9 @@ $record-btn-size: 2em;
                                     margin: 0 auto;
                                     display: flex;
                                     flex-direction: row;
-                                    background-color: #e0e0e0;
+                                    background-color: $mission-background-noresult;
                                     border-radius: 10px;
-                                    border: 3px solid #bada55;
+                                    border: 2px solid $border-color;
                                     overflow: hidden;
                                     .mission-left {
                                         position: relative;
@@ -309,10 +350,12 @@ $record-btn-size: 2em;
                                             .round {
                                                 position: relative;
                                                 height: 100%;
-                                                width: 100%;
+                                                // width: 100%;
                                                 display: inline-block;
                                                 text-align: center;
-                                                margin-left: 0.5em;
+                                                margin: 0 auto;
+                                                margin-left: 1em;
+
                                                 .round-container {
                                                     position: relative;
                                                     height: $record-btn-size;
@@ -320,14 +363,21 @@ $record-btn-size: 2em;
                                                     // width: 5px;
                                                     background-color: white;
                                                     border-radius: 5px;
-                                                    border: 1px solid #bada55;
+                                                    border: 2px solid
+                                                        $border-color;
                                                     overflow: hidden;
-                                                    font-size: 1em;
+                                                    font-size: 1.2em;
                                                     cursor: pointer;
                                                 }
                                             }
                                         }
                                     }
+                                }
+                                .success {
+                                    background-color: $background-blue;
+                                }
+                                .fail {
+                                    background-color: $background-red;
                                 }
                             }
                         }
@@ -338,10 +388,10 @@ $record-btn-size: 2em;
     }
 }
 .right-board1 {
-    border-right: 3px solid #bada55;
+    border-right: 1px solid #bada55;
 }
 .right-board2 {
-    border-right: 3px solid #bada55;
+    border-right: 1px solid #bada55;
 }
 .vertical-center {
     position: absolute;
@@ -349,4 +399,55 @@ $record-btn-size: 2em;
     transform: translateY(-50%);
     width: 100%;
 }
+.modal-header {
+    font-size: $modal-header-size;
+}
+.modal-body {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    .modal-body-container {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        text-align: left;
+        .leader {
+            font-size: $modal-body-size;
+        }
+        .on-mission {
+            font-size: $modal-body-size;
+        }
+        .vote-results {
+            font-size: $modal-body-size;
+            .vote-results-top {
+                position: relative;
+                height: 50%;
+                width: 100%;
+                margin: 0 auto;
+            }
+            .vote-results-bottom {
+                position: relative;
+                height: 50%;
+                width: 100%;
+                margin: 0 auto;
+            }
+            .agree {
+                color: $background-agree;
+                display: inline;
+            }
+            .disagree {
+                color: $background-red;
+                display: inline;
+            }
+        }
+        .player {
+            display: inline;
+            margin: 0 auto;
+            margin-left: 0.5em;
+        }
+    }
+}
+// .modal-footer {
+// }
 </style>

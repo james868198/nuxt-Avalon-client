@@ -10,43 +10,37 @@
                     .container-left-inner-mid
                         .game-board
                             .game-board-header
-                                .player-info(v-if="playerInfo")
-                                    br
-                                    | You are player {{player.id+1}}
-                                    br
-                                    | You are {{playerInfo.charactor}}
-                                    br
-                                    | You belong to {{playerInfo.camp}}
-                                    br
-                                    | you know {{playerInfo.saw}}
+                                .game-board-header-conainer
+                                    .game-board-header-conainer-inner
+                                        .player-info(v-if="playerInfo")
+                                            .player-info-layer.player-id
+                                                .player-info-block
+                                                    | Your ID:
+                                                .player-info-block
+                                                    | {{player.id+1}}
+                                            .player-info-layer.card
+                                                .player-info-block
+                                                    | Your card:
+                                                .player-info-block(v-bind:class="{ redcamp: playerInfo.camp == 'R', bluecamp: playerInfo.camp == 'B'}" )
+                                                    | {{playerInfo.charactor}}
+                                            .player-info-layer.saw
+                                                .player-info-block
+                                                    | You saw:
+                                                .player-info-block
+                                                    .id(v-for=" sawId in playerInfo.saw")
+                                                        | {{sawId+1}}
                             .game-board-container
                                 .time(v-if="time")
                                     | {{time.min}}:{{time.sec}}
                                 .game-board
                                     InfoBoard(:missions="game.missions", :history = "game.voteHistory", :info="game.roundInfo", :data="game.data")
-                                //- .info(v-if="game.roundInfo")
-                                //-     | This is mission: {{game.missions.length}}, round: {{game.roundInfo.roundId+1}}
-                                //-     br
-                                //-     | Stage: #[strong.stage {{game.data.stage}}]
-                                //-     br
-                                //-     | #[strong Player {{game.roundInfo.leader+1}}] is the leader
-                                //-     br
-                                //-     | W:{{game.data.successCounter}} F: {{game.data.failCounter}}
-                                //-     br
-                                //-     | Winner: #[strong {{game.data.winner}}]
-                                //-     br
-                                //- .mission(v-if="game.missions")
-                                //-     | {{game.missions}}
-                                //- .history(v-if="game.voteHistory")
-                                //-     | {{game.voteHistory}}
-                                    //- el-select(v-model="historyRoundId" placeholder="Select")
-                                    //-     el-option(v-for="mission in game.missions"  :key="mission.id"  :label="mission.id"  :value="mission.id")
                             .game-board-footer(v-if="game.room")
-                                | game status: {{game.room.status}}
-                                br
-                                | {{game.room.numOfPlayers}} players room
-                                hr
-                                | room id: {{game.room.id}}
+                                .room-info
+                                    | Game Status: {{game.room.status}}
+                                    br
+                                    | Room Name: {{game.room.name}}, Player Number: {{game.room.numOfPlayers}}
+                                    hr
+                                    | room id: {{game.room.id}}
 
                     .container-left-inner-right
                         .player-list(v-if="game.players")
@@ -142,6 +136,11 @@ export default {
                     if (res.data) {
                         if (res.data.game) {
                             this.game = res.data.game
+                            const status = this.game.room.status
+                            console.log('watch game status', status)
+                            if (status !== 'pending' && !this.playerInfo) {
+                                this.getPlayerInfo()
+                            }
                         }
                         if (res.data.player) {
                             this.player = res.data.player
@@ -157,20 +156,13 @@ export default {
                     }
                 }
             })
-        },
-        game(newVal, oldVal) {
-            if (newVal) {
-                console.log('watch game status', newVal.room.status)
-                this.game = newVal
-                if (newVal.room.status !== 'pending' && !this.playerInfo) {
-                    this.getPlayerInfo()
-                }
-            }
         }
     },
     created() {
+        console.log('[socketIo] connect to game server')
         const socketUrl = `${socketClient.url}/game`
         this.socket = socketClient.io(socketUrl, socketClient.options)
+        console.log('[socketIo] get socket:', this.socket)
     },
     mounted() {
         if (!localStorage.userId) {
@@ -219,6 +211,7 @@ export default {
             SocketEmits.setName(this.socket, data)
         },
         joinGame() {
+            console.log('[joinGame]')
             const data = {
                 gameId: this.gameId,
                 userId: this.userId,
@@ -227,9 +220,11 @@ export default {
             SocketEmits.joinGame(this.socket, data)
         },
         getGameById(id) {
+            console.log('[getGameById]')
             SocketEmits.getGameById(this.socket, id)
         },
         getPlayerInfo() {
+            console.log('[getPlayerInfo]', this.socket)
             SocketEmits.getPlayerInfo(this.socket)
         },
         // actions
@@ -304,6 +299,13 @@ export default {
 </script>
 
 <style lang="scss">
+$border-color: #bada55;
+// $board-background-color: #f9fce4;
+$board-background-color: #ffffff;
+
+$playerInfo-font-size: 1.2em;
+$color-r: #ff6f6f;
+$color-b: #487ef1;
 .game {
     position: relative;
     height: 100%;
@@ -356,9 +358,62 @@ export default {
                             height: 20%;
                             width: 100%;
                             display: inline-block;
-                            .player-info {
+                            text-align: center;
+                            .game-board-header-conainer {
                                 position: relative;
-                                // font-size: 1em;
+                                height: 100%;
+                                width: 80%;
+                                margin: 0 auto;
+                                .game-board-header-conainer-inner {
+                                    position: absolute;
+                                    top: 50%;
+                                    height: 80%;
+                                    width: 100%;
+                                    transform: translateY(-50%);
+                                    .player-info {
+                                        position: relative;
+                                        height: 100%;
+                                        width: 100%;
+                                        background-color: $board-background-color;
+                                        // font-size: 1em;
+                                        border: 2px solid $border-color;
+                                        border-radius: 8px;
+                                        text-align: left;
+                                        .player-id {
+                                            height: 25%;
+                                        }
+                                        .card {
+                                            height: 25%;
+                                            .redcamp {
+                                                color: $color-r;
+                                            }
+                                            .bluecamp {
+                                                color: $color-b;
+                                            }
+                                        }
+                                        .saw {
+                                            height: 50%;
+                                            .id {
+                                                display: inline;
+                                                // margin: 0 auto;
+                                                margin-left: 0.3em;
+                                            }
+                                        }
+                                        .player-info-layer {
+                                            position: relative;
+                                            width: 100%;
+                                            display: flex;
+                                            flex-direction: row;
+                                            .player-info-block {
+                                                position: relative;
+                                                width: 50%;
+                                                display: inline-block;
+                                                text-align: center;
+                                                font-size: $playerInfo-font-size;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                         .game-board-container {
@@ -374,26 +429,7 @@ export default {
                             }
                             .game-board {
                                 position: relative;
-                                height: 90%;
-                                width: 100%;
-                            }
-                            .info {
-                                position: relative;
-                                height: 40%;
-                                width: 100%;
-                                // font-size: 1.5em;
-                                .stage {
-                                    color: red;
-                                }
-                            }
-                            .mission {
-                                position: relative;
-                                height: 20%;
-                                width: 100%;
-                            }
-                            .history {
-                                position: relative;
-                                height: 20%;
+                                height: 85%;
                                 width: 100%;
                             }
                         }
@@ -404,7 +440,7 @@ export default {
                             display: inline-block;
                             .room-info {
                                 position: relative;
-                                padding: 0.5em;
+                                // font-size: 1.2em;
                             }
                         }
                     }
