@@ -2,10 +2,10 @@
 
 <template lang="pug">
 .avalon-container
-    .top-side
-        .top-side-container
-            .top-side-container-inner
-                .title(v-on:click="backToHomePage") Nuxt-Avalon
+    .header
+        .header-container
+            .header-container-inner
+                .title(v-on:click="backToHomePage") Nuxt-Avalon |
     .container
         router-view
 </template>
@@ -30,18 +30,18 @@ $head-height: 10vh;
     position: relative;
     width: 100vw;
     height: 100vh-$head-height;
-    .top-side {
+    .header {
         position: absolute;
         top: 0%;
         width: 100vw;
         height: $head-height;
         background-color: #363636;
         color: white;
-        .top-side-container {
+        .header-container {
             position: relative;
             width: 100%;
             height: 100%;
-            .top-side-container-inner {
+            .header-container-inner {
                 position: absolute;
                 left: 1em;
                 top: 50%;
@@ -57,6 +57,7 @@ $head-height: 10vh;
         position: relative;
         width: 100%;
         height: 100vh-$head-height;
+        overflow: hidden;
     }
 }
 </style>

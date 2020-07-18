@@ -3,18 +3,19 @@
         .chatroom-container
             .chatroom-container-inner
                 .container-top
-                    #chatting.chatroom-message
-                        ul.chatroom-message-inner
-                            li.chatroom-message.sentence(v-for="chat in chatting")
-                                .user
-                                    | {{chat.userName}}:
-                                .message
-                                    | &nbsp{{chat.message}}
+                    #chatting.message-list
+                        .message-list-inner
+                            .message(v-for="chat in chatting")
+                                .message-continaer
+                                    .user
+                                        | {{chat.userName}}
+                                    .message
+                                        | {{chat.message}}
+
                 .container-bottom(@keyup.enter="sendMessage")
                     .dialog(v-if="name")
                         .input
-                            .vertical-center
-                                el-input(v-model="message", type="textarea", placeholder="Write here!")
+                            input(v-model="message", type="text", placeholder="Write here!")
 
 
 </template>
@@ -40,10 +41,10 @@ export default {
             message: null
         }
     },
-    watch: {
-        chatting(newVal, oldVal) {
+    updated() {
+        this.$nextTick(() => {
             this.toBottom()
-        }
+        })
     },
     methods: {
         sendMessage() {
@@ -52,60 +53,79 @@ export default {
         },
         toBottom() {
             const element = this.$el.querySelector('#chatting')
-            console.log(element)
-            element.scrollTop = element.scrollHeight
+            console.log(element.scrollHeight)
+            element.scrollTop = element.scrollHeight + 100
         }
     }
 }
 </script>
 
 <style lang="scss">
+@import '../../styles/variables/index.scss';
+
 .chatroom {
     position: relative;
     height: 100%;
     width: 100%;
-    text-align: left;
-    max-width: 30em;
-    min-width: 20em;
-    text-align: right;
-    background-color: gray;
+    min-width: 30em;
+    border-radius: 15px;
+    background-color: color(gray-1);
+
     .chatroom-container {
-        position: relative;
-        height: 100%;
-        width: 99%;
-        display: inline-block;
-        background-color: white;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 92%;
+        width: 100%;
+        text-align: center;
         .chatroom-container-inner {
             position: relative;
             height: 100%;
             width: 100%;
             display: flex;
             flex-direction: column;
-            text-align: left;
+
             .container-top {
                 display: inline-block;
                 position: relative;
                 height: 85%;
                 width: 100%;
-                .chatroom-message {
+                .message-list {
                     position: relative;
                     height: 100%;
                     width: 100%;
                     overflow: scroll;
-                    .chatroom-message-inner {
-                        list-style-type: none;
-                        margin: 0% auto;
-                        padding-left: 1em;
-                        padding-right: 1em;
-                        .chatroom-message.sentence {
-                            font-size: 1.5em;
-                            word-wrap: break-word;
-                            .user {
-                                display: inline;
-                                opacity: 0.7;
-                            }
-                            .message {
-                                display: inline;
+                    .message-list-inner {
+                        position: relative;
+                        width: 100%;
+                        .message {
+                            position: relative;
+                            width: 100%;
+
+                            .message-continaer {
+                                font-size: 1.2em;
+                                word-wrap: break-word;
+                                display: flex;
+                                flex-direction: column;
+                                min-height: 40px;
+                                color: color(white);
+                                padding-left: 0.2em;
+                                .user {
+                                    display: inline-block;
+                                    font-size: 1.2em;
+                                    text-align: left;
+                                    color: color(green);
+                                }
+                                .message {
+                                    display: inline-block;
+                                    text-align: left;
+                                    opacity: 0.8;
+                                    padding-left: 0.4em;
+                                }
+                                &:hover {
+                                    background-color: color(gray-2);
+                                    opacity: 0.5;
+                                }
                             }
                         }
                     }
@@ -116,7 +136,6 @@ export default {
                 position: relative;
                 height: 15%;
                 width: 100%;
-                background-color: #f8f8ff;
                 .dialog {
                     position: relative;
                     height: 100%;
@@ -124,9 +143,37 @@ export default {
                     text-align: center;
                     .input {
                         position: relative;
-                        width: 80%;
+                        width: 98%;
                         height: 100%;
                         display: inline-block;
+                        input[type='text'] {
+                            padding: 12px 20px;
+                            margin: 3px 0;
+                            position: relative;
+                            height: 96%;
+                            width: 100%;
+                            box-sizing: border-box;
+                            color: color(white);
+                            background-color: color(gray-2);
+                            border-radius: 15px;
+                            border: 0;
+                            &:focus {
+                                border: 0;
+                                outline: none;
+                            }
+                        }
+                        ::placeholder {
+                            color: color(green);
+                        }
+                        ::-webkit-input-placeholder {
+                            /* Edge */
+                            color: color(green);
+                        }
+
+                        :-ms-input-placeholder {
+                            /* Internet Explorer 10-11 */
+                            color: color(green);
+                        }
                     }
                 }
             }

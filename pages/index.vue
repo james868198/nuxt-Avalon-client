@@ -1,57 +1,58 @@
 <template lang="pug">
     .main
-        .main-container
-            .container-left
-                .main-board
-                    .main-board-top
-                        .main-board-column
-                            .main-board-column-inner
-                                .main-board-column-container
-                                    .label
-                                        .label-inner
-                                            | Player Name
-                                    .input
-                                        el-input(v-model="playerName")
-                                    .btn
-                                        el-button(type="info", @click="setPlayerName") enter
+        .container
+            .container-top
+                .container-top-inner
+                    .main-board
+                        .main-board-top
+                            .main-board-column
+                                .main-board-column-inner
+                                    .main-board-column-container
+                                        .label
+                                            .label-inner
+                                                | Player Name
+                                        .input
+                                            el-input(v-model="playerName")
+                                        .btn
+                                            el-button(type="warning"  @click="setPlayerName") enter
 
-                        .main-board-column
-                            .main-board-column-inner
-                                .main-board-column-container
-                                    .label
-                                        .label-inner
-                                            | Create Room
-                                    .input
-                                        el-input.input-left(v-model="gameName", placeholder="Room Name")
-                                        el-select.input-right(v-model="numOfPlayers", placeholder="Player Number")
-                                            el-option(v-for="item in numOfPlayersOptions", :key="item.value", :label="item.label", :value="item.value")
-                                    .btn
-                                        el-button(type="info", @click="createGame") create
-                        .main-board-column
-                            .main-board-column-inner
-                                .main-board-column-container
-                                    .label
-                                        .label-inner
-                                            | Join Room
-                                    .input
-                                        el-input(v-model="roomId", placeholder="Room ID")
-                                    .btn
-                                        el-button(type="info", @click="joinGame") GO
-                    //-     .main-board-column
-                    //- .container-left-inner-bottom
+                            .main-board-column
+                                .main-board-column-inner
+                                    .main-board-column-container
+                                        .label
+                                            .label-inner
+                                                | Create Room
+                                        .input
+                                            el-input.input-left(v-model="gameName", placeholder="Room Name")
+                                            el-select.input-right(v-model="numOfPlayers", placeholder="Player Number")
+                                                el-option(v-for="item in numOfPlayersOptions", :key="item.value", :label="item.label", :value="item.value")
+                                        .btn
+                                            el-button(type="warning", @click="createGame") create
+                            .main-board-column
+                                .main-board-column-inner
+                                    .main-board-column-container
+                                        .label
+                                            .label-inner
+                                                | Join Room
+                                        .input
+                                            el-input(v-model="roomId", placeholder="Room ID")
+                                        .btn
+                                            el-button(type="warning", @click="joinGame") GO
+                        //-     .main-board-column
+                        //- .container-left-inner-bottom
 
-                    //- .game(v-for="game in games")
-                    //-     | {{game.name}}
-                    //- .line
-                    //-     .label
-                    //-         .label-inner
-                    //-             | join room
-                    //-     .input
-                    //-         el-input(v-model="roomName")
-                    //-     .btn
-                    //-         el-button(type="info", @click="joinGame") enter
-            .container-right
-                .container-right-inner
+                        //- .game(v-for="game in games")
+                        //-     | {{game.name}}
+                        //- .line
+                        //-     .label
+                        //-         .label-inner
+                        //-             | join room
+                        //-     .input
+                        //-         el-input(v-model="roomName")
+                        //-     .btn
+                        //-         el-button(type="info", @click="joinGame") enter
+            .container-bottom
+                .container-bottom-inner
                     Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
 
 </template>
@@ -233,108 +234,145 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../styles/variables/index.scss';
+
+$label-color: color(white);
+
 .main {
     position: relative;
     height: 100%;
     width: 100%;
     overflow: hidden;
     background-color: white;
-    .main-container {
+    font-size: $font-size1;
+    background-color: color(gray-2);
+    .container {
         position: relative;
         height: 100%;
         width: 100%;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         // overflow: hidden;
-        .container-left {
+        .container-top {
             position: relative;
             display: inline-block;
-            height: 100%;
-            width: 70%;
+            height: 50%;
+            width: 100%;
             text-align: center;
-            .main-board {
+            .container-top-inner {
                 position: relative;
+                display: inline-block;
                 height: 100%;
-                width: 80%;
-                margin: 0 auto;
+                width: 70%;
                 text-align: center;
-                overflow: scroll;
-                .main-board-column {
+                .main-board {
                     position: relative;
-                    width: 100%;
-                    height: 6em;
-                    .main-board-column-inner {
-                        position: absolute;
-                        top: 50%;
-                        transform: translateY(-50%);
-                        // height: 90%;
+                    height: 100%;
+                    width: 80%;
+                    margin: 0 auto;
+                    text-align: center;
+                    overflow: scroll;
+                    .main-board-column {
+                        position: relative;
                         width: 100%;
-                        .main-board-column-container {
-                            position: relative;
-                            height: 90%;
+                        height: 6em;
+                        .main-board-column-inner {
+                            position: absolute;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            // height: 90%;
                             width: 100%;
-                            display: flex;
-                            flex-direction: row;
-                            .label {
-                                display: inline-block;
+                            .main-board-column-container {
                                 position: relative;
-                                width: 25%;
-                                font-size: 1.2em;
-                                text-align: center;
-                                .label-inner {
-                                    position: absolute;
-                                    top: 50%;
-                                    transform: translateY(-50%);
-                                }
-                            }
-                            .input {
-                                display: inline-block;
-                                position: relative;
-                                width: 50%;
-                                text-align: left;
-                                .input-left {
-                                    position: relative;
-                                    height: 100%;
-                                    max-width: 40%;
+                                height: 90%;
+                                width: 100%;
+                                display: flex;
+                                flex-direction: row;
+                                .label {
                                     display: inline-block;
-                                }
-                                .input-right {
-                                    margin-left: 1em;
                                     position: relative;
-                                    height: 100%;
-                                    max-width: 40%;
-                                    display: inline-block;
+                                    width: 25%;
+                                    font-size: 1.5em;
+                                    text-align: center;
+                                    color: $label-color;
+                                    font-weight: bold;
+                                    .label-inner {
+                                        position: absolute;
+                                        top: 50%;
+                                        transform: translateY(-50%);
+                                    }
                                 }
-                            }
-                            .btn {
-                                display: inline-block;
-                                position: relative;
-                                width: 25%;
-                                text-align: center;
+                                .input {
+                                    display: inline-block;
+                                    position: relative;
+                                    width: 50%;
+                                    text-align: left;
+                                    .input-left {
+                                        position: relative;
+                                        height: 100%;
+                                        max-width: 40%;
+                                        display: inline-block;
+                                    }
+                                    .input-right {
+                                        margin-left: 1em;
+                                        position: relative;
+                                        height: 100%;
+                                        max-width: 40%;
+                                        display: inline-block;
+                                    }
+                                }
+                                .btn {
+                                    display: inline-block;
+                                    position: relative;
+                                    width: 25%;
+                                    text-align: center;
+                                }
                             }
                         }
                     }
+                    // .container-left-inner-mid {
+                    //     position: relative;
+                    //     width: 100%;
+                    //     display: flex;
+                    //     flex-direction: row;
+                    //     padding-top: 2em;
+                    //     font-size: 1.5em;
+                    // }
                 }
-                // .container-left-inner-mid {
-                //     position: relative;
-                //     width: 100%;
-                //     display: flex;
-                //     flex-direction: row;
-                //     padding-top: 2em;
-                //     font-size: 1.5em;
-                // }
             }
         }
-        .container-right {
+        .container-bottom {
             position: relative;
             display: inline-block;
-            height: 100%;
-            width: 30%;
-            .container-right-inner {
+            height: 50%;
+            width: 100%;
+            text-align: center;
+            .container-bottom-inner {
                 position: relative;
-                height: 100%;
-                width: 100%;
-                text-align: right;
+                height: 90%;
+                width: 70%;
+                margin: 0 auto;
+                text-align: center;
+                border-radius: 15px;
+                background-color: color(gray-2);
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .main {
+        font-size: $font-size3;
+        .container {
+            .container-top {
+                .container-top-inner {
+                    width: 100%;
+                }
+            }
+            .container-bottom {
+                .container-bottom-inner {
+                    width: 90%;
+                }
             }
         }
     }
