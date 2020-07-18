@@ -43,6 +43,10 @@ const assassinate = (socket, data) => {
     socket.emit('assassinate', data)
 }
 
+const moveStage = socket => {
+    socket.emit('moveStage')
+}
+
 export default {
     // all
     chat,
@@ -59,5 +63,6 @@ export default {
     unQuest,
     vote,
     action,
-    assassinate
+    assassinate,
+    moveStage
 }

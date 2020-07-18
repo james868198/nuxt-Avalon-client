@@ -83,7 +83,8 @@ export default {
                 missions: [],
                 voteHistory: [],
                 roundInfo: null,
-                players: null
+                players: null,
+                time: 0
             },
             userId: null,
             playerName: null,
@@ -141,6 +142,17 @@ export default {
                             if (status !== 'pending' && !this.playerInfo) {
                                 this.getPlayerInfo()
                             }
+                            if (
+                                this.game.time != undefined ||
+                                this.game.time != NaN
+                            ) {
+                                if (this.game.time >= 0) {
+                                    this.time.min = Math.floor(
+                                        this.game.time / 60
+                                    )
+                                    this.time.sec = this.game.time % 60
+                                }
+                            }
                         }
                         if (res.data.player) {
                             this.player = res.data.player
@@ -148,10 +160,6 @@ export default {
                         if (res.data.playerInfo) {
                             console.log('test playerInfo')
                             this.playerInfo = res.data.playerInfo
-                        }
-                        if (res.data.time) {
-                            this.time.min = Math.floor(res.data.time / 60)
-                            this.time.sec = res.data.time % 60
                         }
                     }
                 }
@@ -297,9 +305,14 @@ export default {
             }
             SocketEmits.assassinate(this.socket, data)
         },
+
         // others
         backToHome() {
-            // window.location.href = '/'
+            window.location.href = '/'
+        },
+        // for testing
+        moveStage() {
+            SocketEmits.moveStage(this.socket)
         }
     }
 }
