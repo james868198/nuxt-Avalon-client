@@ -80,8 +80,8 @@ export default {
             game: {
                 room: null,
                 data: null,
-                missions: null,
-                voteHistory: null,
+                missions: [],
+                voteHistory: [],
                 roundInfo: null,
                 players: null
             },
@@ -162,16 +162,23 @@ export default {
         console.log('[socketIo] connect to game server')
         const socketUrl = `${socketClient.url}/game`
         this.socket = socketClient.io(socketUrl, socketClient.options)
-        console.log('[socketIo] get socket:', this.socket)
+        // console.log('[socketIo] get socket:', this.socket)
     },
     mounted() {
-        if (!localStorage.userId) {
+        console.log('userId', sessionStorage.userId)
+        if (!sessionStorage.userId) {
             this.backToHome()
         }
-        if (localStorage.playerName) {
-            this.playerName = localStorage.playerName
+        if (sessionStorage.playerName) {
+            this.playerName = sessionStorage.playerName
         }
-        this.userId = localStorage.userId
+        // if (!localStorage.userId) {
+        //     this.backToHome()
+        // }
+        // if (localStorage.playerName) {
+        //     this.playerName = localStorage.playerName
+        // }
+        this.userId = sessionStorage.userId
         this.gameId = this.$route.params.id
         this.joinGame() // get game data
     },
@@ -211,7 +218,7 @@ export default {
             SocketEmits.setName(this.socket, data)
         },
         joinGame() {
-            console.log('[joinGame]')
+            console.log('[joinGame]', this.userId, this.playerName)
             const data = {
                 gameId: this.gameId,
                 userId: this.userId,
@@ -292,7 +299,7 @@ export default {
         },
         // others
         backToHome() {
-            window.location.href = '/'
+            // window.location.href = '/'
         }
     }
 }

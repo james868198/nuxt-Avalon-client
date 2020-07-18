@@ -1,8 +1,11 @@
 const joinGame = (socket, data) => {
     socket.emit('joinGame', data)
 }
-const setName = (socket, data) => {
-    socket.emit('setName', data)
+const createUser = (socket, data) => {
+    socket.emit('createUser', data)
+}
+const getUser = (socket, data) => {
+    socket.emit('getUser', data)
 }
 const chat = (socket, data) => {
     socket.emit('chat', data)
@@ -43,7 +46,8 @@ const assassinate = (socket, data) => {
 export default {
     // all
     chat,
-    setName,
+    createUser,
+    getUser,
     getGameById,
     // hall
     getGames,

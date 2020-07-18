@@ -70,7 +70,6 @@ export default {
         return {
             chatting: [],
             games: [],
-            socketId: null,
             userId: null,
             playerName: null,
             socket: null,
@@ -129,20 +128,19 @@ export default {
             })
             this.socket.on('response', resp => {
                 console.log('get res', resp)
-                if (resp.status == 'error') {
-                    console.log('ERROR:', resp.error.description)
+                if (resp.status == 'fail') {
+                    console.log('ERROR:', resp.error)
                 } else {
-                    if (resp.socketId) {
-                        this.socketId = resp.socketId
-                    }
-                    if (resp.userData) {
-                        console.log('get userData', resp.userData)
-                        this.userId = resp.userData.id
-                        this.playerName = resp.userData.name
-                        localStorage.userId = resp.userData.id
-                        localStorage.playerName = resp.userData.name
-                    }
                     if (resp.data) {
+                        if (resp.data.user) {
+                            console.log('get user', resp.data.user)
+                            this.userId = resp.data.user.id
+                            this.playerName = resp.data.user.name
+                            // localStorage.userId = resp.user.id
+                            // localStorage.playerName = resp.user.name
+                            sessionStorage.userId = resp.data.user.id
+                            sessionStorage.playerName = resp.data.user.name
+                        }
                         if (resp.data.gameId) {
                             window.location = `game/${resp.data.gameId}`
                         }
@@ -155,36 +153,21 @@ export default {
         this.socket = socketClient.io(socketClient.url, socketClient.options)
     },
     mounted() {
-        if (localStorage.playerName) {
-            this.playerName = localStorage.playerName
+        // if (localStorage.playerName) {
+        //     this.playerName = localStorage.playerName
+        // }
+        // if (localStorage.userId) {
+        //     this.userId = localStorage.userId
+        // }
+        if (sessionStorage.userId) {
+            console.log('sessionStorage.userId', sessionStorage.userId)
             this.userId = localStorage.userId
-            // this.setName()
+        }
+        if (sessionStorage.playerName) {
+            this.playerName = sessionStorage.playerName
         }
     },
     methods: {
-        // open() {
-        //     this.$confirm(
-        //         'This will permanently delete the file. Continue?',
-        //         'Warning',
-        //         {
-        //             confirmButtonText: 'OK',
-        //             cancelButtonText: 'Cancel',
-        //             type: 'warning'
-        //         }
-        //     )
-        //         .then(() => {
-        //             this.$message({
-        //                 type: 'success',
-        //                 message: 'Delete completed'
-        //             })
-        //         })
-        //         .catch(() => {
-        //             this.$message({
-        //                 type: 'info',
-        //                 message: 'Delete canceled'
-        //             })
-        //         })
-        // },
         classifyMessage(message) {
             if (!message || message == '') {
                 return
@@ -215,7 +198,7 @@ export default {
                 userId: this.userId,
                 userName: this.playerName
             }
-            SocketEmits.setName(this.socket, data)
+            SocketEmits.createUser(this.socket, data)
         },
         joinGame() {
             if (!this.roomId) {
