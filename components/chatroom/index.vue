@@ -2,7 +2,7 @@
     .chatroom
         .chatroom-container
             .chatroom-container-inner
-                .container-top
+                .chatroom-container-top
                     #chatting.message-list
                         .message-list-inner
                             .message(v-for="chat in chatting")
@@ -12,7 +12,7 @@
                                     .message
                                         | {{chat.message}}
 
-                .container-bottom(@keyup.enter="sendMessage")
+                .chatroom-container-bottom(@keyup.enter="sendMessage")
                     .dialog(v-if="name")
                         .input
                             input(v-model="message", type="text", placeholder="Write here!")
@@ -67,8 +67,7 @@ export default {
     position: relative;
     height: 100%;
     width: 100%;
-    min-width: 30em;
-    border-radius: 15px;
+
     background-color: color(gray-1);
 
     .chatroom-container {
@@ -85,7 +84,7 @@ export default {
             display: flex;
             flex-direction: column;
 
-            .container-top {
+            .chatroom-container-top {
                 display: inline-block;
                 position: relative;
                 height: 85%;
@@ -131,7 +130,7 @@ export default {
                     }
                 }
             }
-            .container-bottom {
+            .chatroom-container-bottom {
                 display: inline-block;
                 position: relative;
                 height: 15%;

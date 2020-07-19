@@ -23,6 +23,7 @@ export default {
 
 <style lang="scss">
 $head-height: 10vh;
+@import '@/styles/index.scss';
 
 .avalon-container {
     padding-top: $head-height;
@@ -58,6 +59,18 @@ $head-height: 10vh;
         width: 100%;
         height: 100vh-$head-height;
         overflow: hidden;
+    }
+}
+@media screen and (max-width: 800px) {
+    .game {
+        .game-container {
+            .game-container-left {
+                width: 10%;
+            }
+            .game-container-right {
+                width: 90%;
+            }
+        }
     }
 }
 </style>

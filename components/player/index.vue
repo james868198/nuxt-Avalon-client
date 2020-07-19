@@ -1,18 +1,21 @@
 <template lang="pug">
-    .player(v-bind:class="{ selected: onMission }")
+    //- .player(v-if="data" v-bind:class="{ selected: data.onMission }")
+    .player(v-if="data")
         .player-container
             .player-container-inner
-                .id
-                    | {{id+1}}
-
-                //- .avatar(v-if="avatar")
-                //-     | {{avatar}}
-                .status
-                    //- .dot-online(v-if="status == 'on' ")
-                    //- .dot-offline(v-if="status == 'off'")
-                    .dot(v-if="status", v-bind:class="{ on: status == 'on', off: status == 'off' }")
-                .name
-                    | {{name}}
+                .player-container-item.id
+                    | {{(data.id||id)+1}}
+                    .status-dot(v-if="data.status", v-bind:class="{ on: data.status == 'on', off: data.status == 'off' }")
+                .player-container-item.name(v-if="data.name")
+                    | {{data.name}}
+                .player-container-item.icon.seen(v-if="isSeen()")
+                    img(src="@/static/icons/eye.svg")
+                .player-container-item.icon.leader(v-if="roundInfo !== null && roundInfo.leader === id")
+                    img(src="@/static/icons/fist.svg")
+                .player-container-item.icon.in-mission(v-if="data.onMission")
+                    img(src="@/static/icons/flag.svg")
+                .player-container-item.icon.lady-of-lake(v-if="roundInfo !== null && roundInfo.ladyOfLake && roundInfo.ladyOfLake === id")
+                    img(src="@/static/icons/model.svg")
                 //- .voted
                 //-     | {{voted}}
                 //- .onMission
@@ -28,122 +31,176 @@ export default {
         playerToken: CircleToken
     },
     props: {
-        name: {
-            type: String,
-            default: null
+        data: {
+            type: Object,
+            default: () => {
+                return null
+            }
+        },
+        privateInfo: {
+            type: Object,
+            default: () => {
+                return null
+            }
+        },
+        roundInfo: {
+            type: Object,
+            default: () => {
+                return null
+            }
         },
         id: {
             type: Number,
             default: null
-        },
-        status: {
-            type: String,
-            default: null
-        },
-        onMission: {
-            type: Boolean,
-            default: null
-        },
-        voted: {
-            type: Boolean,
-            default: null
-        },
-        avatar: {
-            type: String,
-            default: null
         }
     },
     data() {
-        return {}
+        return {
+            index: null
+        }
     },
-    // computed: {
-    // },
     watch: {},
-    methods: {}
+    mounted() {},
+    methods: {
+        udpateIndex() {
+            // if(this.data)
+        },
+        isSeen() {
+            console.log(this.data, this.privateInfo)
+            if (!this.data) {
+                return false
+            }
+            if (!this.data.id) {
+                return false
+            }
+            if (!this.privateInfo) {
+                return false
+            }
+            if (!this.privateInfo.seenmap) {
+                return false
+            }
+            if (this.data.id in this.privateInfo.seenmap) {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
 }
 </script>
 
 <style lang="scss">
+@import '../../styles/variables/index.scss';
+
+$id-size: 3em;
+$icon-size: 2em;
+$icon-image-size: 2em;
+
 .player {
     position: relative;
     height: 100%;
     width: 100%;
     background-color: white;
+    transition: ease 1s;
+
     :hover {
         opacity: 0.8;
     }
     .player-container {
-        position: absolute;
+        position: relative;
+        height: 100%;
         width: 100%;
-        top: 50%;
-        transform: translateY(-50%);
-        text-align: center;
         .player-container-inner {
             position: relative;
             height: 100%;
             width: 100%;
-            display: flex;
-            flex-direction: row;
-            .id {
-                position: relative;
-                height: 100%;
-                width: 8%;
-                display: inline-block;
+            display: grid;
+            grid-gap: 0.2em;
+            grid-template-columns: $id-size auto $icon-size $icon-size $icon-size $icon-size;
+            .player-container-item {
                 text-align: center;
                 font-style: italic;
-                font-size: 1.5em;
+                align-self: center;
             }
-            .status {
+            .id {
                 position: relative;
-                height: 100%;
-                width: 10%;
-                display: inline-block;
-                .dot {
+                margin-left: 0.1em;
+                font-size: 1.6em;
+                // background-color: color(blue);
+
+                .status-dot {
                     position: absolute;
-                    top: 5px;
+                    bottom: 0em;
                     // transform: translateY(-50%);
                     border-radius: 50%;
-                    height: 15px;
-                    width: 15px;
+                    height: 0.4em;
+                    width: 0.4em;
                     display: inline-block;
                 }
                 .on {
-                    background-color: green;
+                    background-color: color(green);
                 }
                 .off {
-                    background-color: red;
+                    background-color: color(red);
                 }
             }
-            .avatar {
-                position: relative;
-                height: 100%;
-                width: 20%;
-                display: inline-block;
-            }
+
             .name {
-                position: relative;
-                height: 100%;
-                width: 50%;
-                display: inline-block;
-                text-align: center;
-                font-size: 1.5em;
+                font-size: 1.6em;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
-            .voted {
-                position: relative;
-                height: 100%;
-                width: 10%;
-                display: inline-block;
+            .icon {
+                height: $icon-size;
+                transition: width 2s;
+                img {
+                    max-width: $icon-image-size;
+                    max-height: $icon-image-size;
+                }
             }
-            .onMission {
-                position: relative;
-                height: 100%;
-                width: 20%;
-                display: inline-block;
-            }
+            // .in-mission {
+            //     background-color: red;
+            // }
+            // .leader {
+            //     background-color: blue;
+            // }
+            // .seen {
+            //     background-color: green;
+            // }
+            // .lady-of-lake {
+            //     background-color: peru;
+            // }
         }
     }
 }
 .selected {
     background: orange;
+}
+@media screen and (max-width: 1100px) {
+    .player {
+        font-size: 0.8em;
+    }
+}
+@media screen and (max-width: 700px) {
+    .player {
+        font-size: 0.6em;
+    }
+}
+@media screen and (max-width: 500px) {
+    .player {
+        .player-container {
+            .player-container-inner {
+                // grid-template-columns: auto, auto, auto, auto, auto;
+
+                .name {
+                    display: none;
+                }
+                // .icon {
+                //     display: none;
+                // }
+            }
+        }
+    }
 }
 </style>

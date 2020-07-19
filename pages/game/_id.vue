@@ -1,55 +1,48 @@
 <template lang="pug">
     .game
-        .game-container
-            .container-left(v-if="game")
-                .container-left-inner
-                    .container-left-inner-left
-                        .player-list(v-if="game.players")
-                            .player-item(v-for="player in game.players.slice(0,game.room.numOfPlayers/2)")
-                                PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
-                    .container-left-inner-mid
-                        .game-board
-                            .game-board-header
-                                .game-board-header-conainer
-                                    .game-board-header-conainer-inner
-                                        .player-info(v-if="playerInfo")
-                                            .player-info-layer.player-id
-                                                .player-info-block
-                                                    | Your ID:
-                                                .player-info-block
-                                                    | {{player.id+1}}
-                                            .player-info-layer.card
-                                                .player-info-block
-                                                    | Your card:
-                                                .player-info-block(v-bind:class="{ redcamp: playerInfo.camp == 'R', bluecamp: playerInfo.camp == 'B'}" )
-                                                    | {{playerInfo.charactor}}
-                                            .player-info-layer.saw
-                                                .player-info-block
-                                                    | You saw:
-                                                .player-info-block
-                                                    .id(v-for=" sawId in playerInfo.saw")
-                                                        | {{sawId+1}}
-                            .game-board-container
-                                .time(v-if="time")
-                                    | {{time.min}}:{{time.sec}}
-                                .game-board
-                                    InfoBoard(:missions="game.missions", :history = "game.voteHistory", :info="game.roundInfo", :data="game.data")
-                            .game-board-footer(v-if="game.room")
-                                .room-info
-                                    | Game Status: {{game.room.status}}
-                                    br
-                                    | Room Name: {{game.room.name}}, Player Number: {{game.room.numOfPlayers}}
-                                    hr
-                                    | room id: {{game.room.id}}
+        .game-container(v-if="game")
+            .game-container-left
+                .game-container-left-inner
+                    .player-list(v-if="game.players")
+                        //- .my-player-item()
+                        //-     PlayerItem(:data="playerData", :privateInfo="playerInfo", :roundInfo="game.roundInfo", :id="id")
+                        .player-item(v-for="(playerData, id) in game.players")
+                            PlayerItem(:data="playerData", :privateInfo="playerInfo", :roundInfo="game.roundInfo", :id="id")
+                            //- PlayerItem(:id="playerData.id || id", :name="playerData.name", :status="playerData.status", :onMission="playerData.onMission")
 
-                    .container-left-inner-right
-                        .player-list(v-if="game.players")
-                            .player-item(v-for="player in game.players.slice(game.room.numOfPlayers/2,game.room.numOfPlayers)")
-                                PlayerItem(:id="player.id", :name="player.name", :status="player.status", :voted="player.voted", :onMission="player.onMission")
-            .container-right
-                .container-right-inner
-                    Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
-                //- | id: {{player.id}}
+
+            .game-container-right
+                .game-container-right-inner
+                    .game-container-right-top
+                        .vertical-center
+                            .game-container-right-top-inner
+                                .game-board
+                                    .game-board-top
+                                        .game-board-header-inner
+                                    .game-board-bottom
+                                        .game-board-container-inner
+                                            .info-board
+                                                //- room data
+                                                .info-board-inner(v-if="game.room")
+                                                    | Game Status: {{game.room.status}}
+                                                    br
+                                                    | Room Name: {{game.room.name}}, Player Number: {{game.room.numOfPlayers}}
+                                                    hr
+                                                    | room id: {{game.room.id}}
+                                            .status-board
+                                                //- game status, stage info, history
+                                                .status-board-inner(v-if="game.room")
+                                                    .time(v-if="time")
+                                                        | {{time.min}}:{{time.sec}}
+                                            .action-board
+                                                //- player's management board for quest, vote, action, assassinate
+                                                .action-board-inner
+
+                    .game-container-right-bottom
+                        .vertical-center
+                            .game-container-right-bottom-inner
+                                .game-chatroom
+                                    Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
 
 
 
@@ -83,7 +76,7 @@ export default {
                 missions: [],
                 voteHistory: [],
                 roundInfo: null,
-                players: null,
+                players: [],
                 time: 0
             },
             userId: null,
@@ -138,28 +131,37 @@ export default {
                         if (res.data.game) {
                             this.game = res.data.game
                             const status = this.game.room.status
-                            console.log('watch game status', status)
+                            console.log('game status', status)
                             if (status !== 'pending' && !this.playerInfo) {
                                 this.getPlayerInfo()
                             }
-                            if (
-                                this.game.time != undefined ||
-                                this.game.time != NaN
-                            ) {
-                                if (this.game.time >= 0) {
-                                    this.time.min = Math.floor(
-                                        this.game.time / 60
-                                    )
-                                    this.time.sec = this.game.time % 60
-                                }
+                        }
+                        if (
+                            res.data.time != undefined ||
+                            res.data.time != NaN
+                        ) {
+                            const time = res.data.time
+                            if (res.data.time >= 0) {
+                                this.time.min = Math.floor(time / 60)
+                                this.time.sec = time % 60
                             }
                         }
                         if (res.data.player) {
                             this.player = res.data.player
                         }
                         if (res.data.playerInfo) {
-                            console.log('test playerInfo')
-                            this.playerInfo = res.data.playerInfo
+                            console.log('reveice playerInfo')
+                            if (this.playerInfo === null) {
+                                this.playerInfo = res.data.playerInfo
+                            }
+                            const map = {}
+                            if (this.playerInfo.saw) {
+                                this.playerInfo.saw.forEach(sawId => {
+                                    map[sawId] = 1
+                                })
+                                this.playerInfo['seenmap'] = map
+                            }
+                            console.log('playerInfo:', this.playerInfo)
                         }
                     }
                 }
@@ -319,19 +321,24 @@ export default {
 </script>
 
 <style lang="scss">
+@import '@/styles/variables/index.scss';
+
 $border-color: #bada55;
 // $board-background-color: #f9fce4;
 $board-background-color: #ffffff;
 
 $playerInfo-font-size: 1.2em;
-$color-r: #ff6f6f;
-$color-b: #487ef1;
+
+$container-left-width-1: 20px;
+$container-left-width-2: 200px;
+$gamer-item-height: 20px;
+$player-item-height: 30px;
+
 .game {
     position: relative;
     height: 100%;
     width: 100%;
     overflow: hidden;
-    background-color: white;
     .game-container {
         position: relative;
         height: 100%;
@@ -339,163 +346,160 @@ $color-b: #487ef1;
         display: flex;
         flex-direction: row;
         // overflow: hidden;
-        .container-left {
+        .game-container-left {
             position: relative;
             display: inline-block;
             height: 100%;
-            width: 70%;
-            .container-left-inner {
+            width: 20%;
+            // min-width: $container-left-width-1;
+            overflow: hidden;
+            transition: width 1s;
+            .game-container-left-inner {
                 position: relative;
                 height: 100%;
                 width: 100%;
-                display: flex;
-                flex-direction: row;
-                background-color: rgb(156, 152, 152);
-                // margin: 0 auto;
-                // text-align: center;
-                .container-left-inner-left {
-                    position: relative;
-                    height: 100%;
-                    width: 30%;
-                }
-                .container-left-inner-mid {
-                    position: relative;
-                    height: 100%;
-                    width: 40%;
-                    .game-board {
-                        position: relative;
-                        height: 100%;
-                        width: 100%;
-                        min-width: 20em;
-                        // margin-top: 0.5em;
-                        // margin-bottom: 0.5em;
-                        background-color: white;
-                        display: flex;
-                        flex-direction: column;
-                        text-align: center;
-                        .game-board-header {
-                            position: relative;
-                            height: 20%;
-                            width: 100%;
-                            display: inline-block;
-                            text-align: center;
-                            .game-board-header-conainer {
-                                position: relative;
-                                height: 100%;
-                                width: 80%;
-                                margin: 0 auto;
-                                .game-board-header-conainer-inner {
-                                    position: absolute;
-                                    top: 50%;
-                                    height: 80%;
-                                    width: 100%;
-                                    transform: translateY(-50%);
-                                    .player-info {
-                                        position: relative;
-                                        height: 100%;
-                                        width: 100%;
-                                        background-color: $board-background-color;
-                                        // font-size: 1em;
-                                        border: 2px solid $border-color;
-                                        border-radius: 8px;
-                                        text-align: left;
-                                        .player-id {
-                                            height: 25%;
-                                        }
-                                        .card {
-                                            height: 25%;
-                                            .redcamp {
-                                                color: $color-r;
-                                            }
-                                            .bluecamp {
-                                                color: $color-b;
-                                            }
-                                        }
-                                        .saw {
-                                            height: 50%;
-                                            .id {
-                                                display: inline;
-                                                // margin: 0 auto;
-                                                margin-left: 0.3em;
-                                            }
-                                        }
-                                        .player-info-layer {
-                                            position: relative;
-                                            width: 100%;
-                                            display: flex;
-                                            flex-direction: row;
-                                            .player-info-block {
-                                                position: relative;
-                                                width: 50%;
-                                                display: inline-block;
-                                                text-align: center;
-                                                font-size: $playerInfo-font-size;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .game-board-container {
-                            position: relative;
-                            height: 70%;
-                            width: 100%;
-                            display: inline-block;
-                            .time {
-                                position: relative;
-                                height: 10%;
-                                width: 100%;
-                                font-size: 3em;
-                            }
-                            .game-board {
-                                position: relative;
-                                height: 85%;
-                                width: 100%;
-                            }
-                        }
-                        .game-board-footer {
-                            position: relative;
-                            height: 10%;
-                            width: 100%;
-                            display: inline-block;
-                            .room-info {
-                                position: relative;
-                                // font-size: 1.2em;
-                            }
-                        }
-                    }
-                }
-                .container-left-inner-right {
-                    position: relative;
-                    height: 100%;
-                    width: 30%;
-                }
                 .player-list {
                     position: relative;
                     height: 100%;
                     width: 100%;
-                    display: flex;
-                    flex-direction: column;
+                    display: grid;
+                    grid-template-rows: repeat(11, 1fr);
+                    .my-player-item {
+                        position: relative;
+                        width: 100%;
+                        grid-row: 1 / 2;
+                    }
                     .player-item {
                         position: relative;
-                        height: 5em;
-                        margin-top: 0.5em;
-                        margin-left: 0.5em;
-                        margin-right: 0.5em;
+                        width: 100%;
+                        // position: relative;
+                        // height: 5em;
+                        // margin-top: 0.5em;
+                        // margin-left: 0.5em;
+                        // margin-right: 0.5em;
                     }
                 }
             }
         }
-        .container-right {
+        .game-container-right {
             position: relative;
             display: inline-block;
             height: 100%;
-            width: 30%;
-            .container-right-inner {
+            width: 80%;
+            transition: width 1s;
+            background-color: color(gray-5);
+            .game-container-right-inner {
                 position: relative;
                 height: 100%;
                 width: 100%;
-                text-align: right;
+                display: flex;
+                flex-direction: column;
+                .vertical-center {
+                    position: absolute;
+                    height: 90%;
+                    width: 100%;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    text-align: center;
+                }
+                .game-container-right-top {
+                    position: relative;
+                    height: 40%;
+                    width: 100%;
+                    display: inline-block;
+                    .game-container-right-top-inner {
+                        position: relative;
+                        height: 100%;
+                        width: 96%;
+                        margin: 0 auto;
+                        .game-board {
+                            position: relative;
+                            height: 100%;
+                            width: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            background-color: color(gray-2);
+                            .game-board-top {
+                                position: relative;
+                                height: 10%;
+                                width: 100%;
+                                display: inline-block;
+                                .game-board-top-inner {
+                                    position: relative;
+                                    height: 100%;
+                                    width: 100%;
+                                }
+                            }
+                            .game-board-bottom {
+                                position: relative;
+                                height: 90%;
+                                width: 100%;
+                                display: inline-block;
+                                .game-board-bottom-inner {
+                                    position: relative;
+                                    height: 100%;
+                                    width: 100%;
+                                    .board-container {
+                                        position: relative;
+                                        height: 100%;
+                                        width: 100%;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .game-container-right-bottom {
+                    position: relative;
+                    height: 60%;
+                    width: 100%;
+                    display: inline-block;
+
+                    .game-container-right-bottom-inner {
+                        position: relative;
+                        height: 100%;
+                        width: 96%;
+                        margin: 0 auto;
+                        .game-chatroom {
+                            position: relative;
+                            height: 100%;
+                            width: 100%;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+@media screen and (max-width: 1100px) {
+    .game {
+        .game-container {
+            .game-container-left {
+                width: 30%;
+            }
+            .game-container-right {
+                width: 70%;
+            }
+        }
+    }
+}
+@media screen and (max-width: 700px) {
+    .game {
+        .game-container {
+            .game-container-left {
+                width: 20%;
+
+                .player-list {
+                    position: absolute;
+                    z-index: 99999;
+                }
+                &:hover {
+                    overflow: visible;
+                    // width: 30%;
+                }
+            }
+            .game-container-right {
+                width: 80%;
             }
         }
     }

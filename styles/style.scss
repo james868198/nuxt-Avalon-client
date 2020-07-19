@@ -1,15 +1,20 @@
-html {
-	font-family: "Open Sans", "Lato", "Helvetica Neue", Helvetica, Arial, "PingFang TC", "PingFang SC", "STHeiti", "微軟正黑體", "Microsoft Yahei", sans-serif;
-	font-size: 14px;
-	-webkit-font-smoothing: antialiased;
 
-	@media screen and (max-width: 768px) {
+
+html {
+	// font-family: "Open Sans", "Lato", "Helvetica Neue", Helvetica, Arial, "PingFang TC", "PingFang SC", "STHeiti", "微軟正黑體", "Microsoft Yahei", sans-serif;
+	font-size: 14px;
+	// -webkit-font-smoothing: antialiased;
+
+	@media screen and (max-width: 1000px) {
 		font-size: 12px;
-	}
+    }
+    @media screen and (max-width: 800px) {
+		font-size: 10px;
+    }
 }
 
 body {
-    background-color: #F6F6F6;
+    // background-color: #F6F6F6;
     margin: 0 auto;
 }
 
@@ -21,61 +26,61 @@ a {
 	// 	color: $color-default;
 	// }
 }
-.vertical-center {
-    position: absolute;
-    top: 50%;
-    width: 100%;
-    transform: translateY(-50%);
-    text-align: center;
-}
+// .vertical-center {
+//     position: absolute;
+//     top: 50%;
+//     width: 100%;
+//     transform: translateY(-50%);
+//     text-align: center;
+// }
 
-::-webkit-scrollbar {
-	width: 5px;
-	height: 5px;
-}
-::-webkit-scrollbar-button {
-	width: 0px;
-	height: 0px;
-}
-::-webkit-scrollbar-thumb {
-	background: color(blue);
-	border: 0px none color(black);
-	border-radius: 100px;
-}
-::-webkit-scrollbar-thumb:hover {
-	background: color(blue);
-}
-::-webkit-scrollbar-thumb:active {
-	background: color(white);
-}
-::-webkit-scrollbar-track {
-	background: color(gray-5);
-	border: 0px none color(white);
-	border-radius: 50px;
-}
-::-webkit-scrollbar-track:hover {
-	background: color(gray-5);
-}
-::-webkit-scrollbar-track:active {
-	background: color(blue);
-}
-::-webkit-scrollbar-corner {
-	background: transparent;
-}
+// ::-webkit-scrollbar {
+// 	width: 5px;
+// 	height: 5px;
+// }
+// ::-webkit-scrollbar-button {
+// 	width: 0px;
+// 	height: 0px;
+// }
+// ::-webkit-scrollbar-thumb {
+// 	background: color(blue);
+// 	border: 0px none color(black);
+// 	border-radius: 100px;
+// }
+// ::-webkit-scrollbar-thumb:hover {
+// 	background: color(blue);
+// }
+// ::-webkit-scrollbar-thumb:active {
+// 	background: color(white);
+// }
+// ::-webkit-scrollbar-track {
+// 	background: color(gray-5);
+// 	border: 0px none color(white);
+// 	border-radius: 50px;
+// }
+// ::-webkit-scrollbar-track:hover {
+// 	background: color(gray-5);
+// }
+// ::-webkit-scrollbar-track:active {
+// 	background: color(blue);
+// }
+// ::-webkit-scrollbar-corner {
+// 	background: transparent;
+// }
 
-// Modify ckeditor style temporarily
+// // Modify ckeditor style temporarily
 
-.ck.ck-editor__editable_inline {
-	padding: 0 !important;
-	& > :first-child {
-		margin-top: inherit !important;
-		margin: 0;
-	}
-}
+// .ck.ck-editor__editable_inline {
+// 	padding: 0 !important;
+// 	& > :first-child {
+// 		margin-top: inherit !important;
+// 		margin: 0;
+// 	}
+// }
 
-.ck-rounded-corners .ck.ck-dropdown .ck-dropdown__panel .ck-list, .ck.ck-dropdown .ck-dropdown__panel .ck-list.ck-rounded-corners {
-	max-height: 10em;
-	max-width: 50em;
-	overflow: scroll;
-}
+// .ck-rounded-corners .ck.ck-dropdown .ck-dropdown__panel .ck-list, .ck.ck-dropdown .ck-dropdown__panel .ck-list.ck-rounded-corners {
+// 	max-height: 10em;
+// 	max-width: 50em;
+// 	overflow: scroll;
+// }
 

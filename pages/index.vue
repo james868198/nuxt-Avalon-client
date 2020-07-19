@@ -362,7 +362,6 @@ $label-color: color(white);
 
 @media screen and (max-width: 800px) {
     .main {
-        font-size: $font-size3;
         .container {
             .container-top {
                 .container-top-inner {
