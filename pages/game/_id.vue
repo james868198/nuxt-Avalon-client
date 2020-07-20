@@ -18,25 +18,40 @@
                             .game-container-right-top-inner
                                 .game-board
                                     .game-board-top
-                                        .game-board-header-inner
+                                        .game-board-top-inner
+                                            .game-board-nav
+                                                .game-board-nav-container
+                                                    .game-board-nav-item(v-for="board in gameBoards"  @click= "gameBoard = board")  {{board}}
+                                                    .room-info(v-if="game.room")
+                                                        | Game Status: {{game.room.status}} | {{gameBoard}}
+                                                        | Player Number: {{game.room.numOfPlayers}}
+                                                        br
+                                                        | room id: {{game.room.id}}
                                     .game-board-bottom
-                                        .game-board-container-inner
-                                            .info-board
-                                                //- room data
-                                                .info-board-inner(v-if="game.room")
-                                                    | Game Status: {{game.room.status}}
-                                                    br
-                                                    | Room Name: {{game.room.name}}, Player Number: {{game.room.numOfPlayers}}
-                                                    hr
-                                                    | room id: {{game.room.id}}
-                                            .status-board
-                                                //- game status, stage info, history
-                                                .status-board-inner(v-if="game.room")
-                                                    .time(v-if="time")
-                                                        | {{time.min}}:{{time.sec}}
-                                            .action-board
-                                                //- player's management board for quest, vote, action, assassinate
-                                                .action-board-inner
+                                        .game-board-bottom-inner
+                                            //- .info-board
+                                            //-     //- room data
+                                            //-     .info-board-inner(v-if="game.room")
+
+                                            .board-container
+                                                .status-board(:class="{ show: gameBoard == 'Game' }")
+                                                    //- game status, stage info, history
+                                                    .status-board-inner
+
+                                                        .round-board
+                                                            .vertical-center
+                                                                .round-board-inner
+                                                                    RoundBoard(:missions="game.missions", :hisotry="game.voteHistory")
+                                                        .info
+                                                            .time
+                                                                | {{time.min}}:{{time.sec}}
+                                                            .stage(v-if="game.roundInfo")
+                                                                | Stage: {{game.roundInfo.stage}}
+                                                .action-board(:class="{ show: gameBoard == 'Action'}")
+                                                    | teat
+                                                    .action-board-inner
+                                            //-     //- player's management board for quest, vote, action, assassinate
+                                            //-     .action-board-inner
 
                     .game-container-right-bottom
                         .vertical-center
@@ -50,7 +65,7 @@
 
 <script>
 import Chatroom from '@/components/chatroom'
-import Board from '@/components/board'
+import RoundBoard from '@/components/RoundBoard'
 
 import SocketEmits from '@/utils/bridges/socket/emits'
 import socketClient from '@/plugins/socket.io'
@@ -60,7 +75,7 @@ export default {
     name: 'Game',
     components: {
         Chatroom,
-        InfoBoard: Board,
+        RoundBoard,
         PlayerItem: Player
     },
     data() {
@@ -98,7 +113,10 @@ export default {
                 vote: this.vote, // vote [y or n]
                 action: this.action, // action [s or f]
                 assassinate: this.assassinate // assassinate [s or f]
-            }
+            },
+            // game-board-nav
+            gameBoards: ['Game', 'Action'],
+            gameBoard: 'Game'
         }
     },
     watch: {
@@ -324,8 +342,11 @@ export default {
 @import '@/styles/variables/index.scss';
 
 $border-color: #bada55;
-// $board-background-color: #f9fce4;
-$board-background-color: #ffffff;
+$board-background-color: color(gray-3);
+$board-nav-background-color: color(gray-5);
+$board-nav-size: 8em;
+$board-item-color: color(gray-3);
+$board-font-color: color(orange);
 
 $playerInfo-font-size: 1.2em;
 
@@ -352,7 +373,6 @@ $player-item-height: 30px;
             height: 100%;
             width: 20%;
             // min-width: $container-left-width-1;
-            overflow: hidden;
             transition: width 1s;
             .game-container-left-inner {
                 position: relative;
@@ -364,6 +384,8 @@ $player-item-height: 30px;
                     width: 100%;
                     display: grid;
                     grid-template-rows: repeat(11, 1fr);
+                    justify-items: center;
+                    // align-items: center;
                     .my-player-item {
                         position: relative;
                         width: 100%;
@@ -394,19 +416,13 @@ $player-item-height: 30px;
                 width: 100%;
                 display: flex;
                 flex-direction: column;
-                .vertical-center {
-                    position: absolute;
-                    height: 90%;
-                    width: 100%;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    text-align: center;
-                }
                 .game-container-right-top {
                     position: relative;
                     height: 40%;
                     width: 100%;
                     display: inline-block;
+                    z-index: 6;
+
                     .game-container-right-top-inner {
                         position: relative;
                         height: 100%;
@@ -418,21 +434,56 @@ $player-item-height: 30px;
                             width: 100%;
                             display: flex;
                             flex-direction: column;
-                            background-color: color(gray-2);
+                            background-color: $board-background-color;
                             .game-board-top {
                                 position: relative;
-                                height: 10%;
+                                height: 20%;
                                 width: 100%;
                                 display: inline-block;
                                 .game-board-top-inner {
                                     position: relative;
                                     height: 100%;
                                     width: 100%;
+                                    .game-board-nav {
+                                        position: relative;
+                                        height: 100%;
+                                        width: 100%;
+                                        background-color: $board-nav-background-color;
+                                        color: $board-font-color;
+                                        .game-board-nav-container {
+                                            position: relative;
+                                            height: 100%;
+                                            width: 100%;
+                                            display: grid;
+                                            grid-template-columns: $board-nav-size $board-nav-size $board-nav-size auto;
+                                            text-align: center;
+                                            align-self: center;
+                                            .game-board-nav-item {
+                                                text-align: center;
+                                                font-size: 1.6em;
+                                                background-color: $board-background-color;
+                                                // &::before {
+                                                //     position: after;
+                                                //     height: 100%;
+                                                //     width: 100%;
+                                                // }
+                                                cursor: pointer;
+                                                &:hover {
+                                                    opacity: 0.8;
+                                                }
+                                            }
+                                            .room-info {
+                                                grid-column: -1;
+                                                text-align: right;
+                                                display: inline;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             .game-board-bottom {
                                 position: relative;
-                                height: 90%;
+                                height: 80%;
                                 width: 100%;
                                 display: inline-block;
                                 .game-board-bottom-inner {
@@ -443,6 +494,62 @@ $player-item-height: 30px;
                                         position: relative;
                                         height: 100%;
                                         width: 100%;
+                                        // overflow: hidden;
+                                        .status-board {
+                                            position: relative;
+                                            height: 100%;
+                                            width: 100%;
+                                            display: None;
+                                            .status-board-inner {
+                                                position: relative;
+                                                height: 100%;
+                                                width: 100%;
+                                                display: grid;
+                                                grid-gap: 0.2em;
+                                                grid-template-rows: repeat(
+                                                    2,
+                                                    1fr
+                                                );
+                                                text-align: center;
+                                                align-self: center;
+                                                .info {
+                                                    display: inline-block;
+                                                    position: relative;
+                                                    height: 100%;
+                                                    width: 100%;
+                                                    font-size: 2em;
+                                                    z-index: 6;
+                                                    .time {
+                                                    }
+                                                    .stage {
+                                                    }
+                                                }
+                                                .round-board {
+                                                    display: inline-block;
+                                                    position: relative;
+                                                    height: 100%;
+                                                    width: 100%;
+                                                    z-index: 7;
+                                                    .round-board-inner {
+                                                        position: relative;
+                                                        height: 100%;
+                                                        width: 80%;
+                                                        margin: 0 auto;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        .action-board {
+                                            position: relative;
+                                            height: 100%;
+                                            width: 100%;
+                                            display: None;
+                                            background-color: white;
+                                        }
+                                        .show {
+                                            display: block;
+                                            // transition: height 1s;
+                                        }
                                     }
                                 }
                             }
@@ -454,7 +561,7 @@ $player-item-height: 30px;
                     height: 60%;
                     width: 100%;
                     display: inline-block;
-
+                    z-index: 5;
                     .game-container-right-bottom-inner {
                         position: relative;
                         height: 100%;
@@ -470,6 +577,14 @@ $player-item-height: 30px;
             }
         }
     }
+}
+.vertical-center {
+    position: absolute;
+    height: 90%;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
 }
 @media screen and (max-width: 1100px) {
     .game {

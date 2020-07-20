@@ -89,6 +89,7 @@ export default {
                 position: relative;
                 height: 85%;
                 width: 100%;
+                z-index: 5;
                 .message-list {
                     position: relative;
                     height: 100%;
@@ -135,6 +136,7 @@ export default {
                 position: relative;
                 height: 15%;
                 width: 100%;
+                z-index: 4;
                 .dialog {
                     position: relative;
                     height: 100%;
