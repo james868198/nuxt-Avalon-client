@@ -41,15 +41,17 @@
                                                         .round-board
                                                             .vertical-center
                                                                 .round-board-inner
-                                                                    RoundBoard(:missions="game.missions", :hisotry="game.voteHistory")
+                                                                    RoundBoard(:missions="game.missions", :history="game.voteHistory")
                                                         .info
                                                             .time
                                                                 | {{time.min}}:{{time.sec}}
                                                             .stage(v-if="game.roundInfo")
                                                                 | Stage: {{game.roundInfo.stage}}
                                                 .action-board(:class="{ show: gameBoard == 'Action'}")
-                                                    | teat
-                                                    .action-board-inner
+                                                    .vertical-center
+                                                        .action-board-inner
+                                                            ControlBoard(:stage="'quest'", numOfPlayers="game.room.numOfPlayers")
+
                                             //-     //- player's management board for quest, vote, action, assassinate
                                             //-     .action-board-inner
 
@@ -66,6 +68,7 @@
 <script>
 import Chatroom from '@/components/chatroom'
 import RoundBoard from '@/components/RoundBoard'
+import ControlBoard from '@/components/ControlBoard'
 
 import SocketEmits from '@/utils/bridges/socket/emits'
 import socketClient from '@/plugins/socket.io'
@@ -76,6 +79,7 @@ export default {
     components: {
         Chatroom,
         RoundBoard,
+        ControlBoard,
         PlayerItem: Player
     },
     data() {
@@ -86,7 +90,13 @@ export default {
             socket: null,
             // game
             game: {
-                room: null,
+                room: {
+                    name: 'room',
+                    id: null,
+                    status: 'pending',
+                    numOfPlayers: 0,
+                    nowPlayerAmount: 0
+                },
                 data: null,
                 missions: [],
                 voteHistory: [],
@@ -147,7 +157,26 @@ export default {
                 } else {
                     if (res.data) {
                         if (res.data.game) {
-                            this.game = res.data.game
+                            // this.game = res.data.game
+                            if (res.data.game.room) {
+                                this.game.room = res.data.game.room
+                            }
+                            if (res.data.game.data) {
+                                this.game.data = res.data.game.data
+                            }
+                            if (res.data.game.missions) {
+                                this.game.missions = res.data.game.missions
+                            }
+                            if (res.data.game.voteHistory) {
+                                this.game.voteHistory =
+                                    res.data.game.voteHistory
+                            }
+                            if (res.data.game.roundInfo) {
+                                this.game.roundInfo = res.data.game.roundInfo
+                            }
+                            if (res.data.game.players) {
+                                this.game.players = res.data.game.players
+                            }
                             const status = this.game.room.status
                             console.log('game status', status)
                             if (status !== 'pending' && !this.playerInfo) {
@@ -545,6 +574,12 @@ $player-item-height: 30px;
                                             width: 100%;
                                             display: None;
                                             background-color: white;
+                                            .action-board-inner {
+                                                position: relative;
+                                                height: 100%;
+                                                width: 80%;
+                                                display: inline-block;
+                                            }
                                         }
                                         .show {
                                             display: block;

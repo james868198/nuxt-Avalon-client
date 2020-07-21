@@ -1,5 +1,7 @@
 import pkg from './package'
 
+let outsideClick
+
 module.exports = {
     mode: 'universal',
     server: {
@@ -86,6 +88,18 @@ module.exports = {
                     exclude: /(node_modules)/
                 })
             }
+        }
+    },
+
+    /*
+    ** render
+    */
+    render: {
+        bundleRenderer: {
+            /*
+            ** custom directives
+            */
+            directives: {}
         }
     }
 }

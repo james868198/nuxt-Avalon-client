@@ -50,6 +50,43 @@ export default {
         CircleToken,
         modal: Modal
     },
+    // directives: {
+    //     clickout: {
+    //         bind: (el, binding, vNode) => {
+    //             // Provided expression must evaluate to a function.
+    //             console.log('binding:', typeof binding.value)
+    //             if (typeof binding.value !== 'function') {
+    //                 const compName = vNode.context.name
+    //                 let warn = `[Vue-click-outside:] provided expression '${
+    //                     binding.expression
+    //                 }' is not a function, but has to be`
+    //                 if (compName) {
+    //                     warn += `Found in component '${compName}'`
+    //                 }
+    //                 console.warn(warn)
+    //             }
+    //             // Define Handler and cache it on the element
+    //             const bubble = binding.modifiers.bubble
+    //             const handler = e => {
+    //                 console.log('handler el', el, e.target, bubble)
+    //                 if (bubble || (!el.contains(e.target) && el !== e.target)) {
+    //                     console.log('binding handler', binding)
+    //                     binding.value(e)
+    //                 }
+    //             }
+    //             el.__vueClickOutside__ = handler
+
+    //             // add Event Listeners
+    //             document.addEventListener('click', handler)
+    //         },
+
+    //         unbind: (el, binding) => {
+    //             // Remove Event Listeners
+    //             document.removeEventListener('click', el.__vueClickOutside__)
+    //             el.__vueClickOutside__ = null
+    //         }
+    //     }
+    // },
     props: {
         missions: {
             type: Array,
@@ -104,6 +141,11 @@ export default {
             } else {
                 this.$set(this.historyListStatus, roundId - 1, 0)
             }
+        },
+        closeHistoryList(roundId) {
+            console.log('[closeHistoryList]')
+            // this.$set(this.historyListStatus, roundId - 1, 0)
+            this.historyListStatus = [0, 0, 0, 0, 0]
         }
     }
 }
