@@ -1,19 +1,24 @@
 <template lang="pug">
     .round-board
         .round-board-container
-            .round-item(v-for=" roundId in 5")
-                .round-item-inner(:class="{ show: historyListStatus[roundId-1] }")
-                    .history-list
-                        .round-id
-                            | R {{roundId}}
-                        .history-item(v-for=" recordId in 5" @click="showRecord(recordId, roundId)")
-                            | {{recordId}}
-                        .arror(@click="activateHistoryList(roundId)")
+            .round-item(v-for=" (mission, roundId) in missions")
+                .round-item-inner(:class="{ show: historyListStatus[roundId]}")
+                    .history-list(:class="{ success: mission.result === 'success', fail: mission.result === 'fail'}")
+                        .round-id(:class="{now : missionId === roundId}")
+                            | R {{roundId+1}} | {{mission.NumOnMission}}
+                        .history-item(v-for=" (record, recordId) in history[roundId]" @click="showRecord(record, roundId)")
+                            | {{recordId+1}}
+                        .arror(@click="activateHistoryList(roundId+1)")
                             //- | test
                             .arror-down
                                 img(src="@/static/icons/down-arror.svg")
                             .arror-up
                                 img(src="@/static/icons/up-arror.svg")
+                    .shield(v-if="mission.badTolerance>0")
+                        img(src="@/static/icons/shield.svg")
+                    .fail-counter(v-if="mission.failCounter>0")
+                        .fail-counter-inner
+                            | {{mission.failCounter}}
         modal(v-if='showModal' @close="closeRecord")
             .modal-header(slot="header")
                 | Voting Result
@@ -33,7 +38,7 @@
                                 | {{playerId+1}}
                         .vote-results-bottom
                             .disagree Disagree: &nbsp
-                            .player(v-for="(result, playerId) in roundData.voteResult" v-if="result == 'F'")
+                            .player(v-for="(result, playerId) in roundData.voteResult" v-if="result == 'N'")
                                 | {{playerId+1}}
                 hr
             .modal-footer(slot="footer")
@@ -88,6 +93,10 @@ export default {
     //     }
     // },
     props: {
+        missionId: {
+            type: Number,
+            default: null
+        },
         missions: {
             type: Array,
             required: true,
@@ -117,14 +126,19 @@ export default {
     },
 
     methods: {
-        showRecord(recordId, roundId) {
-            console.log('[showRecord]', recordId, roundId, this.history)
-            if (this.history === null) {
+        showRecord(record, roundId) {
+            console.log('[showRecord]', record)
+            if (record == null || roundId == null) {
                 return
             }
-            const id = recordId - 1
-            this.$set(this.historyListStatus, roundId - 1, 0)
-            this.roundData = this.history[i]
+            // if (roundId <= 0 || roundId > this.missions.length) {
+            //     return
+            // }
+            // if (recordId <= 0 || recordId > this.history[roundId - 1].length) {
+            //     return
+            // }
+            this.$set(this.historyListStatus, roundId, 0)
+            this.roundData = record
             this.showModal = true
             return
         },
@@ -171,10 +185,10 @@ $background-agree: #51cc6f;
         position: relative;
         height: 100%;
         width: 100%;
-        background-color: white;
+        background-color: color(white);
         border-radius: 5px;
         display: grid;
-        grid-gap: 0.2em;
+        grid-gap: 0.6em;
         grid-template-columns: repeat(5, 1fr);
         .round-item {
             align-self: center;
@@ -187,6 +201,40 @@ $background-agree: #51cc6f;
                 // border: 1px solid blue;
                 margin: 0 auto;
                 // border-radius: 5px;
+                .shield {
+                    position: absolute;
+                    top: -1em;
+                    right: -1em;
+                    background-color: color(orange);
+                    border-radius: 50%;
+                    border: 2px solid color(black);
+                    text-align: center;
+
+                    padding: 0.2em 0.3em 0 0.3em;
+
+                    z-index: 9999;
+                    img {
+                        max-width: 1em;
+                        max-height: 1em;
+                    }
+                }
+                .fail-counter {
+                    position: absolute;
+                    right: -1em;
+                    bottom: -1em;
+                    background-color: color(red);
+                    border-radius: 50%;
+                    border: 2px solid color(black);
+                    text-align: center;
+
+                    // padding: 4px 4px 0 4px;
+                    padding: 0 0.4em 0 0.4em;
+
+                    z-index: 999;
+                    .fail-counter-inner {
+                        // font-size: 1.2em;
+                    }
+                }
                 .history-list {
                     position: absolute;
                     top: 0;
@@ -203,12 +251,21 @@ $background-agree: #51cc6f;
                     justify-items: center;
                     align-items: center;
                     border-radius: 5px;
+                    border: 1px solid color(black);
+
+                    font-weight: bold;
                     .round-id {
+                        font-size: 1.2em;
                         color: white;
                         max-width: 4em;
                         border-bottom: 1px solid white;
                     }
+                    .round-id.now {
+                        color: color(orange);
+                        border-color: color(orange);
+                    }
                     .history-item {
+                        font-size: 1.2em;
                         display: inline-block;
                         margin: 0 auto;
                         color: white;
@@ -238,6 +295,12 @@ $background-agree: #51cc6f;
                             opacity: 0.5;
                         }
                     }
+                }
+                .history-list.success {
+                    border: 5px solid color(blue);
+                }
+                .history-list.fail {
+                    border: 5px solid color(red);
                 }
                 &.show {
                     .history-list {

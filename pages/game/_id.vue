@@ -4,13 +4,12 @@
             .game-container-left
                 .game-container-left-inner
                     .player-list(v-if="game.players")
-                        //- .my-player-item()
-                        //-     PlayerItem(:data="playerData", :privateInfo="playerInfo", :roundInfo="game.roundInfo", :id="id")
+                        .my-player-item(v-if="playerInfo")
+                            | ID: {{player.id+1}}
+                            .charactor(:class="{bad: playerInfo.camp === 'R', good: playerInfo.camp === 'B'}")
+                                | {{playerInfo.charactor}}
                         .player-item(v-for="(playerData, id) in game.players")
                             PlayerItem(:data="playerData", :privateInfo="playerInfo", :roundInfo="game.roundInfo", :id="id")
-                            //- PlayerItem(:id="playerData.id || id", :name="playerData.name", :status="playerData.status", :onMission="playerData.onMission")
-
-
             .game-container-right
                 .game-container-right-inner
                     .game-container-right-top
@@ -21,48 +20,57 @@
                                         .game-board-top-inner
                                             .game-board-nav
                                                 .game-board-nav-container
-                                                    .game-board-nav-item(v-for="board in gameBoards"  @click= "gameBoard = board")  {{board}}
-                                                    .room-info(v-if="game.room")
-                                                        | Game Status: {{game.room.status}} | {{gameBoard}}
-                                                        | Player Number: {{game.room.numOfPlayers}}
-                                                        br
-                                                        | room id: {{game.room.id}}
+                                                    .game-board-nav-item(v-for="board in gameBoards" :class="{ selected: gameBoard == board}"  @click= "gameBoard = board")
+                                                        .game-board-nav-item-inner
+                                                            | {{board}}
+
                                     .game-board-bottom
                                         .game-board-bottom-inner
-                                            //- .info-board
-                                            //-     //- room data
-                                            //-     .info-board-inner(v-if="game.room")
-
                                             .board-container
-                                                .status-board(:class="{ show: gameBoard == 'Game' }")
+                                                .status-board(v-show="gameBoard == 'Game'")
                                                     //- game status, stage info, history
                                                     .status-board-inner
 
                                                         .round-board
                                                             .vertical-center
                                                                 .round-board-inner
-                                                                    RoundBoard(:missions="game.missions", :history="game.voteHistory")
+                                                                    RoundBoard(:missionId="game.data.missionId", :missions="game.missions", :history="game.voteHistory")
                                                         .info
-                                                            .time
-                                                                | {{time.min}}:{{time.sec}}
-                                                            .stage(v-if="game.roundInfo")
-                                                                | Stage: {{game.roundInfo.stage}}
-                                                .action-board(:class="{ show: gameBoard == 'Action'}")
+                                                            .info-container
+                                                                .time
+                                                                    | Time:&nbsp
+                                                                    .time-inner
+                                                                        | {{time.min}}:{{time.sec}}
+                                                                .stage(v-if="game.data")
+                                                                    | Stage:&nbsp
+                                                                    .stage-inner(v-if="game.data.stage")
+                                                                        | {{game.data.stage}}
+                                                                    .stage-inner(v-else)
+                                                                        | initializing
+                                                .action-board(v-show="gameBoard == 'Action'")
                                                     .vertical-center
-                                                        .action-board-inner
-                                                            ControlBoard(:stage="'quest'", numOfPlayers="game.room.numOfPlayers")
-
-                                            //-     //- player's management board for quest, vote, action, assassinate
-                                            //-     .action-board-inner
-
+                                                        .action-board-inner(v-if="game.room && game.data")
+                                                            ControlBoard(:stage="game.data.stage"  :selectionNumber="selectionNumber"  :numOfPlayers="game.room.numOfPlayers" @quest="quest" @vote="vote" @action="action" @assassinate="assassinate")
+                                                .room-board(v-show="gameBoard == 'Room'")
+                                                    //- room data
+                                                    .room-board-inner(v-if="game.room")
+                                                        br
+                                                        | Game Status: {{game.room.status}}
+                                                        br
+                                                        | Player Number: {{game.room.numOfPlayers}}
+                                                        hr
+                                                        .room-id
+                                                            | {{game.room.id}}
+                                                .test-board(v-show="gameBoard == 'Test'")
+                                                    el-button(type="warning"  @click="moveStage") moveStage
+                                                    | {{game.roundInfo}}
+                                                    | {{game.data}}
+                                                    | {{game.voteHistory}}
                     .game-container-right-bottom
                         .vertical-center
                             .game-container-right-bottom-inner
                                 .game-chatroom
-                                    Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
-
-
-
+                                    Chatroom(:chatting="chatting"  :name="playerName"  @message="sendMessage")
 </template>
 
 <script>
@@ -97,7 +105,9 @@ export default {
                     numOfPlayers: 0,
                     nowPlayerAmount: 0
                 },
-                data: null,
+                data: {
+                    missionId: -1
+                },
                 missions: [],
                 voteHistory: [],
                 roundInfo: null,
@@ -116,17 +126,27 @@ export default {
                 min: 0,
                 sec: 0
             },
-            // commands
-            cmdConfig: {
-                quest: this.quest, // quest [id]
-                unquest: this.unquest, // uq [id]
-                vote: this.vote, // vote [y or n]
-                action: this.action, // action [s or f]
-                assassinate: this.assassinate // assassinate [s or f]
-            },
             // game-board-nav
-            gameBoards: ['Game', 'Action'],
+            gameBoards: ['Game', 'Action', 'Room', 'Test'],
             gameBoard: 'Game'
+        }
+    },
+    computed: {
+        selectionNumber() {
+            if (this.game == null) {
+                return -1
+            }
+            if (this.game.missions == null || this.game.missions.length == 0) {
+                return -1
+            }
+            if (
+                this.game.data == null ||
+                this.game.data.missionId == null ||
+                this.game.data.missionId < 0
+            ) {
+                return -1
+            }
+            return this.game.missions[this.game.data.missionId].NumOnMission
         }
     },
     watch: {
@@ -148,7 +168,7 @@ export default {
                 }
             })
             this.socket.on('response', res => {
-                console.log('socket res:', res)
+                // console.log('socket res:', res)
                 if (res.status == 'fail') {
                     console.log('socket fail:', res.error)
                     if (res.error.code == 10002) {
@@ -162,6 +182,16 @@ export default {
                                 this.game.room = res.data.game.room
                             }
                             if (res.data.game.data) {
+                                if (
+                                    res.data.game.data.winner &&
+                                    this.game.data.winner == null
+                                ) {
+                                    alert(
+                                        `Winner: ${
+                                            res.data.game.data.winner
+                                        } side`
+                                    )
+                                }
                                 this.game.data = res.data.game.data
                             }
                             if (res.data.game.missions) {
@@ -178,7 +208,7 @@ export default {
                                 this.game.players = res.data.game.players
                             }
                             const status = this.game.room.status
-                            console.log('game status', status)
+                            // console.log('game status', status)
                             if (status !== 'pending' && !this.playerInfo) {
                                 this.getPlayerInfo()
                             }
@@ -240,24 +270,21 @@ export default {
         this.joinGame() // get game data
     },
     methods: {
-        classifyMessage(message) {
+        sendMessage(message) {
             if (!message || message == '') {
                 return
             }
-
-            const words = message.split(' ')
-            if (words[0] !== '//') {
-                this.sendMessage(message)
-            } else {
-                this.cmdConfig[words[1]](words.slice(2))
-            }
-        },
-        sendMessage(message) {
             if (!this.socket) {
                 return null
             }
+            let name = this.playerName
+            if (this.player) {
+                if (this.player.id != null) {
+                    name = `${this.playerName}(Player:${this.player.id + 1})`
+                }
+            }
             const data = {
-                userName: this.playerName,
+                userName: name,
                 message: message
             }
             console.log('send message')
@@ -292,16 +319,30 @@ export default {
             SocketEmits.getPlayerInfo(this.socket)
         },
         // actions
-        quest(word) {
-            console.log('[quest]', word)
-            if (!word) {
-                console.log('no word')
+        quest(selection) {
+            console.log('[gameroom][quest]', selection)
+            if (status == null || status == undefined) {
+                console.log('status empty')
+                return
+            }
+            if (!this.game || !this.game.data) {
+                console.log('game data not found')
+                return
+            }
+            const stage = this.game.data.stage
+            if (stage !== 'questing') {
+                console.log('wrong stage')
+                return
+            }
+            if (!selection) {
+                console.log('no selection')
                 return
             }
             const data = {
-                memberList: word
+                memberList: selection
             }
             SocketEmits.quest(this.socket, data)
+            console.log('[gameroom][quest] sent')
         },
         unquest(word) {
             console.log('[unquest]', word)
@@ -312,45 +353,75 @@ export default {
             const data = {
                 playerId: word[0]
             }
-            SocketEmits.unQuest(this.socket, data)
+            // SocketEmits.unQuest(this.socket, data)
         },
-        vote(word) {
-            console.log('[vote]', word)
-            if (!word[0]) {
-                console.log('no word')
+        vote(status) {
+            console.log('[vote]', status)
+            if (status == null || status == undefined) {
+                console.log('status empty')
                 return
             }
-            if (word[0] !== 'y' && word[0] !== 'n') {
-                console.log('command error')
+            if (!this.game || !this.game.data) {
+                console.log('game data not found')
+                return
+            }
+            const stage = this.game.data.stage
+            if (stage !== 'voting') {
+                console.log('wrong stage')
+                return
+            }
+
+            if (status !== 1 && status !== 0) {
+                console.log('vote data is not 1 and 0')
                 return
             }
             const data = {
-                vote: word[0]
+                vote: status
             }
             SocketEmits.vote(this.socket, data)
         },
-        action(word) {
-            console.log('[action]', word)
-            if (!word[0]) {
-                console.log('no word')
+        action(status) {
+            console.log('[action]', status)
+            if (status == null || status == undefined) {
+                console.log('status empty')
                 return
             }
-            if (word[0] !== 's' && word[0] !== 'f') {
-                console.log('command error')
+            if (!this.game || !this.game.data) {
+                console.log('game data not found')
+                return
+            }
+            const stage = this.game.data.stage
+            if (stage !== 'action') {
+                console.log('wrong stage')
+                return
+            }
+
+            if (status !== 1 && status !== 0) {
+                console.log('vote data is not 1 and 0')
                 return
             }
             const data = {
-                action: word[0]
+                action: status
             }
             SocketEmits.action(this.socket, data)
         },
-        assassinate(word) {
-            if (!word[0]) {
-                console.log('no word')
+        assassinate(selection) {
+            console.log('[assassinate]', selection)
+            if (!this.game || !this.game.room || !this.game.data) {
+                console.log('game data not found')
+                return
+            }
+            if (selection < 0 || selection >= this.game.room.numOfPlayers) {
+                console.log('selection not validation')
+                return
+            }
+            const stage = this.game.data.stage
+            if (stage !== 'assassinating') {
+                console.log('wrong stage')
                 return
             }
             const data = {
-                target: word[0]
+                target: selection
             }
             SocketEmits.assassinate(this.socket, data)
         },
@@ -370,19 +441,12 @@ export default {
 <style lang="scss">
 @import '@/styles/variables/index.scss';
 
-$border-color: #bada55;
-$board-background-color: color(gray-3);
-$board-nav-background-color: color(gray-5);
+$board-background-color: color(gray-1);
+$board-nav-background-color: color(gray-3);
+
 $board-nav-size: 8em;
-$board-item-color: color(gray-3);
+$board-item-color: color(gray-2);
 $board-font-color: color(orange);
-
-$playerInfo-font-size: 1.2em;
-
-$container-left-width-1: 20px;
-$container-left-width-2: 200px;
-$gamer-item-height: 20px;
-$player-item-height: 30px;
 
 .game {
     position: relative;
@@ -401,7 +465,6 @@ $player-item-height: 30px;
             display: inline-block;
             height: 100%;
             width: 20%;
-            // min-width: $container-left-width-1;
             transition: width 1s;
             .game-container-left-inner {
                 position: relative;
@@ -414,11 +477,28 @@ $player-item-height: 30px;
                     display: grid;
                     grid-template-rows: repeat(11, 1fr);
                     justify-items: center;
-                    // align-items: center;
+                    align-items: center;
                     .my-player-item {
                         position: relative;
                         width: 100%;
-                        grid-row: 1 / 2;
+                        height: 100%;
+                        border-bottom: 2px solid color(black);
+                        font-size: 1.4em;
+                        font-weight: bold;
+                        text-align: center;
+                        background-color: color(gray-5);
+                        .charactor {
+                            &::before {
+                                content: 'Card: ';
+                                color: color(black);
+                            }
+                        }
+                        .charactor.bad {
+                            color: color(red);
+                        }
+                        .charactor.good {
+                            color: color(blue);
+                        }
                     }
                     .player-item {
                         position: relative;
@@ -438,7 +518,7 @@ $player-item-height: 30px;
             height: 100%;
             width: 80%;
             transition: width 1s;
-            background-color: color(gray-5);
+            background-color: color(gray-4);
             .game-container-right-inner {
                 position: relative;
                 height: 100%;
@@ -463,10 +543,10 @@ $player-item-height: 30px;
                             width: 100%;
                             display: flex;
                             flex-direction: column;
-                            background-color: $board-background-color;
+                            // background-color: $board-background-color;
                             .game-board-top {
                                 position: relative;
-                                height: 20%;
+                                height: 15%;
                                 width: 100%;
                                 display: inline-block;
                                 .game-board-top-inner {
@@ -477,8 +557,9 @@ $player-item-height: 30px;
                                         position: relative;
                                         height: 100%;
                                         width: 100%;
-                                        background-color: $board-nav-background-color;
+                                        // background-color: $board-nav-background-color;
                                         color: $board-font-color;
+                                        overflow: hidden;
                                         .game-board-nav-container {
                                             position: relative;
                                             height: 100%;
@@ -487,24 +568,29 @@ $player-item-height: 30px;
                                             grid-template-columns: $board-nav-size $board-nav-size $board-nav-size auto;
                                             text-align: center;
                                             align-self: center;
+                                            justify-items: center;
+                                            // background-color: $board-nav-background-color;
+
                                             .game-board-nav-item {
                                                 text-align: center;
-                                                font-size: 1.6em;
-                                                background-color: $board-background-color;
+                                                background-color: $board-item-color;
+                                                width: 100%;
                                                 // &::before {
                                                 //     position: after;
                                                 //     height: 100%;
                                                 //     width: 100%;
                                                 // }
+
                                                 cursor: pointer;
                                                 &:hover {
                                                     opacity: 0.8;
                                                 }
+                                                .game-board-nav-item-inner {
+                                                    font-size: 1.6em;
+                                                }
                                             }
-                                            .room-info {
-                                                grid-column: -1;
-                                                text-align: right;
-                                                display: inline;
+                                            .game-board-nav-item.selected {
+                                                background-color: $board-background-color;
                                             }
                                         }
                                     }
@@ -512,9 +598,10 @@ $player-item-height: 30px;
                             }
                             .game-board-bottom {
                                 position: relative;
-                                height: 80%;
+                                height: 85%;
                                 width: 100%;
                                 display: inline-block;
+                                background-color: $board-background-color;
                                 .game-board-bottom-inner {
                                     position: relative;
                                     height: 100%;
@@ -524,46 +611,93 @@ $player-item-height: 30px;
                                         height: 100%;
                                         width: 100%;
                                         // overflow: hidden;
+                                        .room-board {
+                                            position: relative;
+                                            height: 100%;
+                                            width: 100%;
+                                            // display: None;
+                                            text-align: center;
+                                            .room-board-inner {
+                                                position: relative;
+                                                height: 100%;
+                                                width: 80%;
+                                                display: inline-block;
+                                                text-align: center;
+                                                color: color(orange);
+                                                overflow: scroll;
+                                                font-size: 1.4em;
+                                                .room-id {
+                                                    display: inline;
+                                                    font-size: 1.4em;
+                                                    &::before {
+                                                        font-size: 0.5em;
+                                                        content: 'Room ID: ';
+                                                    }
+                                                }
+                                            }
+                                        }
                                         .status-board {
                                             position: relative;
                                             height: 100%;
                                             width: 100%;
-                                            display: None;
                                             .status-board-inner {
                                                 position: relative;
                                                 height: 100%;
                                                 width: 100%;
                                                 display: grid;
                                                 grid-gap: 0.2em;
-                                                grid-template-rows: repeat(
-                                                    2,
-                                                    1fr
-                                                );
+                                                grid-template-rows: 1em auto 5em;
                                                 text-align: center;
                                                 align-self: center;
-                                                .info {
-                                                    display: inline-block;
-                                                    position: relative;
-                                                    height: 100%;
-                                                    width: 100%;
-                                                    font-size: 2em;
-                                                    z-index: 6;
-                                                    .time {
-                                                    }
-                                                    .stage {
-                                                    }
-                                                }
                                                 .round-board {
                                                     display: inline-block;
                                                     position: relative;
                                                     height: 100%;
                                                     width: 100%;
                                                     z-index: 7;
+                                                    grid-row-start: 2;
+
                                                     .round-board-inner {
                                                         position: relative;
                                                         height: 100%;
                                                         width: 80%;
                                                         margin: 0 auto;
+                                                    }
+                                                }
+                                                .info {
+                                                    display: inline-block;
+                                                    position: relative;
+                                                    height: 100%;
+                                                    width: 100%;
+                                                    z-index: 6;
+                                                    grid-row-start: 3;
+                                                    color: color(orange);
+                                                    text-align: center;
+                                                    .info-container {
+                                                        position: relative;
+                                                        height: 100%;
+                                                        width: 80%;
+                                                        margin: 0 auto;
+                                                        display: grid;
+                                                        grid-template-columns: repeat(
+                                                            2,
+                                                            1fr
+                                                        );
+                                                        text-align: left;
+                                                        .time {
+                                                            font-size: 1.2em;
+                                                            .time-inner {
+                                                                display: inline;
+                                                                font-size: 2em;
+                                                            }
+                                                        }
+                                                        .stage {
+                                                            font-size: 1.2em;
+                                                            .stage-inner {
+                                                                display: inline;
+                                                                font-size: 2em;
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
@@ -572,18 +706,13 @@ $player-item-height: 30px;
                                             position: relative;
                                             height: 100%;
                                             width: 100%;
-                                            display: None;
-                                            background-color: white;
+                                            // background-color: white;
                                             .action-board-inner {
                                                 position: relative;
                                                 height: 100%;
                                                 width: 80%;
                                                 display: inline-block;
                                             }
-                                        }
-                                        .show {
-                                            display: block;
-                                            // transition: height 1s;
                                         }
                                     }
                                 }

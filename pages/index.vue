@@ -38,19 +38,6 @@
                                             el-input(v-model="roomId", placeholder="Room ID")
                                         .btn
                                             el-button(type="warning", @click="joinGame") GO
-                        //-     .main-board-column
-                        //- .container-left-inner-bottom
-
-                        //- .game(v-for="game in games")
-                        //-     | {{game.name}}
-                        //- .line
-                        //-     .label
-                        //-         .label-inner
-                        //-             | join room
-                        //-     .input
-                        //-         el-input(v-model="roomName")
-                        //-     .btn
-                        //-         el-button(type="info", @click="joinGame") enter
             .container-bottom
                 .container-bottom-inner
                     Chatroom(:chatting="chatting"  :name="playerName"  @message="classifyMessage")
@@ -330,14 +317,6 @@ $label-color: color(white);
                             }
                         }
                     }
-                    // .container-left-inner-mid {
-                    //     position: relative;
-                    //     width: 100%;
-                    //     display: flex;
-                    //     flex-direction: row;
-                    //     padding-top: 2em;
-                    //     font-size: 1.5em;
-                    // }
                 }
             }
         }
@@ -366,6 +345,10 @@ $label-color: color(white);
             .container-top {
                 .container-top-inner {
                     width: 100%;
+                    .main-board {
+                        width: 100%;
+                        // font-size: 0.8em;
+                    }
                 }
             }
             .container-bottom {

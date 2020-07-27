@@ -1,14 +1,13 @@
 <template lang="pug">
-    //- .player(v-if="data" v-bind:class="{ selected: data.onMission }")
     .player(v-if="data")
         .player-container
             .player-container-inner
                 .player-container-item.id
                     | {{(data.id||id)+1}}
-                    .status-dot(v-if="data.status", v-bind:class="{ on: data.status == 'on', off: data.status == 'off' }")
+                    .status-dot(v-if="data.status", :class="data.status")
                 .player-container-item.name(v-if="data.name")
                     | {{data.name}}
-                .player-container-item.icon.seen(v-if="isSeen()")
+                .player-container-item.icon.seen(v-if="isSeen")
                     img(src="@/static/icons/eye.svg")
                 .player-container-item.icon.leader(v-if="roundInfo !== null && roundInfo.leader === id")
                     img(src="@/static/icons/fist.svg")
@@ -59,18 +58,13 @@ export default {
             index: null
         }
     },
-    watch: {},
-    mounted() {},
-    methods: {
-        udpateIndex() {
-            // if(this.data)
-        },
+    computed: {
         isSeen() {
-            console.log(this.data, this.privateInfo)
+            // console.log(this.data, this.privateInfo)
             if (!this.data) {
                 return false
             }
-            if (!this.data.id) {
+            if (this.data.id == null) {
                 return false
             }
             if (!this.privateInfo) {
@@ -84,6 +78,13 @@ export default {
             } else {
                 return false
             }
+        }
+    },
+    watch: {},
+    mounted() {},
+    methods: {
+        udpateIndex() {
+            // if(this.data)
         }
     }
 }
@@ -174,9 +175,10 @@ $icon-image-size: 2em;
         }
     }
 }
-.selected {
-    background: orange;
-}
+// .player.onMission {
+//     border: 3px solid color(orange);
+// }
+
 @media screen and (max-width: 1100px) {
     .player {
         font-size: 0.8em;
